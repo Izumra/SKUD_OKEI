@@ -4,8 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
-	"io"
+	"encoding/xml"
 	"net/http"
 )
 
@@ -27,16 +26,16 @@ func WithRawBody(ctx context.Context, method string, url string, headers map[str
 	}
 	defer resp.Body.Close()
 
-	reader, err := io.ReadAll(resp.Body)
-	if err == io.EOF {
-		resp.Body.Close()
-	}
+	decoder := xml.NewDecoder(resp.Body)
+	err = decoder.Decode(&expBody)
+	if err != nil {
+		decoder := json.NewDecoder(resp.Body)
+		err = decoder.Decode(&expBody)
+		if err != nil {
+			return err
+		}
 
-	if resp.StatusCode >= 400 {
-		return errors.New(string(reader))
-	}
-	if err := json.Unmarshal(reader, &expBody); err != nil {
-		return err
+		return nil
 	}
 
 	return nil

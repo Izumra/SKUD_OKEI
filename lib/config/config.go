@@ -8,11 +8,18 @@ import (
 )
 
 type Config struct {
-	Server Server `yaml:"bot"`
+	Server Server   `yaml:"server"`
+	Db     Database `yaml:"db"`
 }
 
 type Server struct {
-	Port int `yaml:"port"`
+	Port            int    `yaml:"port"`
+	IntegerServAddr string `yaml:"integrserv"`
+}
+
+type Database struct {
+	DriverName string `yaml:"driver"`
+	SourcePath string `yaml:"source"`
 }
 
 func MustLoad() *Config {

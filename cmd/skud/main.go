@@ -8,6 +8,10 @@ import (
 	"syscall"
 
 	"github.com/Izumra/SKUD_OKEI/internal/app"
+	"github.com/Izumra/SKUD_OKEI/internal/services/auth"
+	"github.com/Izumra/SKUD_OKEI/internal/services/persons"
+	"github.com/Izumra/SKUD_OKEI/internal/storage/cache/embedded"
+	"github.com/Izumra/SKUD_OKEI/internal/storage/main/sqlite"
 	"github.com/Izumra/SKUD_OKEI/lib/config"
 	"github.com/Izumra/SKUD_OKEI/lib/logger"
 )
@@ -18,9 +22,17 @@ func main() {
 	logger := logger.New(logger.Local, os.Stdout)
 
 	ctx := context.Background()
-	//TODO: implement connect to db
 
-	server := app.NewServer(logger)
+	db := sqlite.NewConnetion(cfg)
+
+	sessStore := embedded.NewSessStore()
+
+	services := app.Services{
+		AuthService:    auth.NewService(logger, sessStore, db, db),
+		PersonsService: persons.NewService(logger, sessStore, cfg.Server.IntegerServAddr),
+	}
+
+	server := app.NewServer(logger, &services)
 	server.Launch(ctx, cfg.Server.Port)
 
 	chanExit := make(chan os.Signal, 1)
