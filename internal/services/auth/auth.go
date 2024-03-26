@@ -75,7 +75,7 @@ func (s *Service) Registrate(ctx context.Context, username, password string) (st
 
 	userId, err := s.usrRep.AddUser(ctx, user)
 	if err != nil {
-		if !errors.Is(err, storage.ErrUserExist) {
+		if errors.Is(err, storage.ErrUserExist) {
 			return "", ErrUserAlreadyRegistered
 		}
 		logger.Error("Occured the error while finding the user", err)

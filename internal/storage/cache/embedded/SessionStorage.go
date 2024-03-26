@@ -14,7 +14,9 @@ type SessionStorage struct {
 }
 
 func NewSessStore() *SessionStorage {
-	return &SessionStorage{}
+	return &SessionStorage{
+		storage: make(map[string]*entity.User),
+	}
 }
 
 func (ss *SessionStorage) Create(ctx context.Context, data *entity.User) (sessionId string, err error) {

@@ -1,10 +1,10 @@
 server:
-  port: 8081
-  integrserv: "http://192.168.248.140:8090"
+  port: 8082
+  integrserv: "http://192.168.102.44:8090"
 session:
   ttl: 24h
   secret: "7g{Q0z7>)9l@"
 db:
   driver: "sqlite3"
-  sorce: "internal/storage/main/sqlite/db/SKUD.db"
+  source: "internal/storage/main/sqlite/db/SKUD.db"
   

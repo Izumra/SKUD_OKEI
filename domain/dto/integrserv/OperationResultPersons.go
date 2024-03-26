@@ -1,9 +1,9 @@
 package integrserv
 
-type OperationResult struct {
+type OperationResultPersons struct {
 	SoapEnvEncodingStyle string `xml:"encodingStyle,attr" json:"-"`
 	XmlnsNS1             string `xml:"NS1,attr" json:"-"`
 	XmlnsNS2             string `xml:"NS2,attr" json:"-"`
 
-	Result any `xml:"OperationResult"`
+	Result any `xml:"TPersonData"`
 }

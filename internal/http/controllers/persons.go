@@ -17,12 +17,12 @@ var (
 )
 
 type PersonsService interface {
-	GetPersons(ctx context.Context, sessionId string, offset int64, count int64) (*integrserv.OperationResult, error)
-	GetPersonsCount(ctx context.Context, sessionId string) (*integrserv.OperationResult, error)
-	GetPersonById(ctx context.Context, sessionId string, id int64) (*integrserv.OperationResult, error)
-	AddPerson(ctx context.Context, sessionId string, data integrserv.PersonData) (*integrserv.OperationResult, error)
-	UpdatePerson(ctx context.Context, sessionId string, data integrserv.PersonData) (*integrserv.OperationResult, error)
-	DeletePerson(ctx context.Context, sessionId string, data integrserv.PersonData) (*integrserv.OperationResult, error)
+	GetPersons(ctx context.Context, sessionId string, offset int64, count int64, filters []string) ([]*integrserv.PersonData, error)
+	GetPersonsCount(ctx context.Context, sessionId string) (int64, error)
+	GetPersonById(ctx context.Context, sessionId string, id int64) (*integrserv.PersonData, error)
+	AddPerson(ctx context.Context, sessionId string, data integrserv.PersonData) (*integrserv.PersonData, error)
+	UpdatePerson(ctx context.Context, sessionId string, data integrserv.PersonData) (*integrserv.PersonData, error)
+	DeletePerson(ctx context.Context, sessionId string, data integrserv.PersonData) (*integrserv.PersonData, error)
 }
 
 type PersonsController struct {
@@ -38,7 +38,7 @@ func RegistrPersonsAPI(router fiber.Router, ps PersonsService) {
 	router.Post("/", pc.AddPerson())
 	router.Delete("/", pc.DeletePerson())
 	router.Put("/", pc.UpdatePerson())
-	router.Get("/:offset/:count", pc.GetPersons())
+	router.Post("/filter/:offset/:count/", pc.GetPersons())
 	router.Get("/:id", pc.GetPersonById())
 }
 
@@ -61,7 +61,13 @@ func (pc *PersonsController) GetPersons() fiber.Handler {
 			return c.JSON(resp.BadRes(fmt.Errorf(" Неверный формат параметра количества пользователей")))
 		}
 
-		result, err := pc.service.GetPersons(c.Context(), session, offset, count)
+		var body []string
+		if err := json.Unmarshal(c.Body(), &body); err != nil {
+			c.Status(fiber.StatusBadRequest)
+			return c.JSON(resp.BadRes(fmt.Errorf(" Неверный формат фильтров для запроса")))
+		}
+
+		result, err := pc.service.GetPersons(c.Context(), session, offset, count, body)
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
 			return c.JSON(resp.BadRes(err))

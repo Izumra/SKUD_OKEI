@@ -3,12 +3,13 @@ package req
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"encoding/xml"
 	"net/http"
+
+	"github.com/Izumra/SKUD_OKEI/domain/dto/integrserv"
 )
 
-func WithRawBody(ctx context.Context, method string, url string, headers map[string]string, body []byte, expBody any) error {
+func ReqToXMLIntegerServ(ctx context.Context, method string, url string, headers map[string]string, body []byte, expBody *integrserv.EnvelopeResp) error {
 	buffer := bytes.NewReader(body)
 
 	req, err := http.NewRequestWithContext(ctx, method, url, buffer)
@@ -26,16 +27,16 @@ func WithRawBody(ctx context.Context, method string, url string, headers map[str
 	}
 	defer resp.Body.Close()
 
-	decoder := xml.NewDecoder(resp.Body)
-	err = decoder.Decode(&expBody)
-	if err != nil {
-		decoder := json.NewDecoder(resp.Body)
-		err = decoder.Decode(&expBody)
-		if err != nil {
-			return err
-		}
+	// data, _ := xml.Marshal(expBody)
+	// log.Println(string(data))
 
-		return nil
+	// stream, _ := io.ReadAll(resp.Body)
+	// log.Println(string(stream))
+
+	decoder := xml.NewDecoder(resp.Body)
+	err = decoder.Decode(expBody)
+	if err != nil {
+		return err
 	}
 
 	return nil

@@ -6,6 +6,7 @@ require gopkg.in/yaml.v3 v3.0.1
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
+	github.com/beevik/etree v1.3.0 // indirect
 	github.com/gofiber/fiber/v3 v3.0.0-20240322111812-5e8df0a348be // indirect
 	github.com/gofiber/utils/v2 v2.0.0-beta.3 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect

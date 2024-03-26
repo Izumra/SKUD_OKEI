@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/Izumra/SKUD_OKEI/domain/entity"
 	"github.com/Izumra/SKUD_OKEI/internal/storage"
@@ -28,6 +29,10 @@ func (s *Storage) UserByID(ctx context.Context, id int64) (*entity.User, error) 
 	}
 
 	var user entity.User
+	if !results.Next() {
+		return nil, storage.ErrUserNotFound
+	}
+
 	err = results.Scan(&user.Id, &user.Username, &user.Password, &user.Role)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -54,6 +59,10 @@ func (s *Storage) UserByUsername(ctx context.Context, username string) (*entity.
 	}
 
 	var user entity.User
+	if !results.Next() {
+		return nil, storage.ErrUserNotFound
+	}
+
 	err = results.Scan(&user.Id, &user.Username, &user.Password, &user.Role)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -73,6 +82,9 @@ func (s *Storage) AddUser(ctx context.Context, data entity.User) (int64, error) 
 
 	result, err := state.ExecContext(ctx, data.Username, data.Password, data.Role)
 	if err != nil {
+		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+			return -1, storage.ErrUserExist
+		}
 		return -1, fmt.Errorf("%s: %w", op, err)
 	}
 

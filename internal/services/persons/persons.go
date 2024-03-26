@@ -1,7 +1,6 @@
 package persons
 
 import (
-	"bytes"
 	"context"
 	"encoding/xml"
 	"errors"
@@ -34,7 +33,7 @@ func NewService(
 	return &Service{
 		logger,
 		sessStore,
-		integrServAddr,
+		fmt.Sprintf("%s/soap/IOrionPro", integrServAddr),
 	}
 }
 
@@ -44,7 +43,8 @@ func (s *Service) GetPersons(
 	sessionId string,
 	offset int64,
 	count int64,
-) (*integrserv.OperationResult, error) {
+	filterParams []string,
+) ([]*integrserv.PersonData, error) {
 	op := "internal/services/persons.Service.GetPersons"
 	logger := s.logger.With(slog.String("op", op))
 
@@ -53,53 +53,98 @@ func (s *Service) GetPersons(
 		return nil, err
 	}
 
-	type Data struct {
-		Offset int64
-		Count  int64
-		Filter []string
+	type FilterItem struct {
+		XMLName xml.Name `xml:"Filter"`
+		Value   string   `xml:"Value"`
 	}
-	body := Data{
+	type Data struct {
+		XMLName      xml.Name
+		WithoutPhoto bool
+		Offset       int64
+		Count        int64
+		Filter       []FilterItem
+	}
+
+	filter := make([]FilterItem, len(filterParams))
+	for i, v := range filterParams {
+		filter[i] = FilterItem{
+			Value: v,
+		}
+	}
+	reqData := Data{
+		WithoutPhoto: true,
+		XMLName: xml.Name{
+			Local: "GetPersons",
+		},
 		Offset: offset,
 		Count:  count,
-		Filter: nil,
+		Filter: filter,
 	}
-	result, err := s.makeReqToIntegerServ(ctx, "GetPersons", &body)
+
+	var expBody []*integrserv.PersonData
+	respBody := &integrserv.OperationResultPersons{
+		SoapEnvEncodingStyle: "http://schemas.xmlsoap.org/soap/encoding/",
+		XmlnsNS1:             "urn:OrionProIntf-IOrionPro",
+		XmlnsNS2:             "urn:OrionProIntf",
+
+		Result: &expBody,
+	}
+	err = req.PreparedReqToXMLIntegerServ(ctx, "GetPersons", s.integrServAddr, reqData, respBody)
 	if err != nil {
 		logger.Info("Occured the error while getting the list of the users", err)
 		return nil, err
 	}
 
-	return result, nil
+	return expBody, nil
 }
 
 func (s *Service) GetPersonsCount(
 	ctx context.Context,
 	sessionId string,
-) (*integrserv.OperationResult, error) {
+) (int64, error) {
 	op := "internal/services/persons.Service.GetPersonsCount"
 	logger := s.logger.With(slog.String("op", op))
 
 	err := s.accessGuardian(ctx, sessionId)
 	if err != nil {
-		return nil, err
+		return -1, err
 	}
 
-	type Data struct{}
-	body := Data{}
-	result, err := s.makeReqToIntegerServ(ctx, "GetPersonsCount", &body)
+	type Data struct {
+		XMLName xml.Name
+	}
+	reqData := Data{
+		XMLName: xml.Name{
+			Local: "GetPersonsCount",
+		},
+	}
+
+	type Count struct {
+		OperationResult int64
+	}
+	var resp Count
+	respBody := &integrserv.OperationResultInt{
+		SoapEnvEncodingStyle: "http://schemas.xmlsoap.org/soap/encoding/",
+		XmlnsNS1:             "urn:OrionProIntf-IOrionPro",
+		XmlnsNS2:             "urn:OrionProIntf",
+
+		Result: &resp,
+	}
+
+	err = req.PreparedReqToXMLIntegerServ(ctx, "GetPersonsCount", s.integrServAddr, reqData, respBody)
 	if err != nil {
 		logger.Info("Occured the error while counts the quantity of the users", err)
-		return nil, err
+		return -1, err
 	}
 
-	return result, nil
+	return resp.OperationResult, nil
 }
 
 func (s *Service) GetPersonById(
 	ctx context.Context,
 	sessionId string,
 	id int64,
-) (*integrserv.OperationResult, error) {
+) (*integrserv.PersonData, error) {
 	op := "internal/services/persons.Service.GetPersonById"
 	logger := s.logger.With(slog.String("op", op))
 
@@ -109,25 +154,38 @@ func (s *Service) GetPersonById(
 	}
 
 	type Data struct {
-		Id int64
+		XMLName xml.Name
+		Id      int64
 	}
-	body := Data{
+	reqData := Data{
+		XMLName: xml.Name{
+			Local: "GetPersonById",
+		},
 		Id: id,
 	}
-	result, err := s.makeReqToIntegerServ(ctx, "GetPersonById", &body)
+
+	var resp integrserv.PersonData
+	respBody := &integrserv.OperationResult{
+		SoapEnvEncodingStyle: "http://schemas.xmlsoap.org/soap/encoding/",
+		XmlnsNS1:             "urn:OrionProIntf-IOrionPro",
+		XmlnsNS2:             "urn:OrionProIntf",
+
+		Result: &resp,
+	}
+	err = req.PreparedReqToXMLIntegerServ(ctx, "GetPersonById", s.integrServAddr, reqData, respBody)
 	if err != nil {
 		logger.Info("Occured the error while finding the user by id", err)
 		return nil, err
 	}
 
-	return result, nil
+	return &resp, nil
 }
 
 func (s *Service) AddPerson(
 	ctx context.Context,
 	sessionId string,
 	data integrserv.PersonData,
-) (*integrserv.OperationResult, error) {
+) (*integrserv.PersonData, error) {
 	op := "internal/services/persons.Service.AddPerson"
 	logger := s.logger.With(slog.String("op", op))
 
@@ -136,26 +194,38 @@ func (s *Service) AddPerson(
 		return nil, err
 	}
 
-	type Data struct {
+	type ReqData struct {
+		XMLName    xml.Name
 		PersonData integrserv.PersonData
 	}
-	body := Data{
+	reqData := ReqData{
+		XMLName: xml.Name{
+			Local: "AddPerson",
+		},
 		PersonData: data,
 	}
-	result, err := s.makeReqToIntegerServ(ctx, "AddPerson", &body)
+
+	respBody := &integrserv.OperationResult{
+		SoapEnvEncodingStyle: "http://schemas.xmlsoap.org/soap/encoding/",
+		XmlnsNS1:             "urn:OrionProIntf-IOrionPro",
+		XmlnsNS2:             "urn:OrionProIntf",
+
+		Result: &data,
+	}
+	err = req.PreparedReqToXMLIntegerServ(ctx, "AddPerson", s.integrServAddr, reqData, respBody)
 	if err != nil {
 		logger.Info("Occured the error while additing the new person", err)
 		return nil, err
 	}
 
-	return result, nil
+	return &data, nil
 }
 
 func (s *Service) UpdatePerson(
 	ctx context.Context,
 	sessionId string,
 	data integrserv.PersonData,
-) (*integrserv.OperationResult, error) {
+) (*integrserv.PersonData, error) {
 	op := "internal/services/persons.Service.UpdatePerson"
 	logger := s.logger.With(slog.String("op", op))
 
@@ -165,25 +235,37 @@ func (s *Service) UpdatePerson(
 	}
 
 	type Data struct {
+		XMLName    xml.Name
 		PersonData integrserv.PersonData
 	}
-	body := Data{
+	reqData := Data{
+		XMLName: xml.Name{
+			Local: "UpdatePerson",
+		},
 		PersonData: data,
 	}
-	result, err := s.makeReqToIntegerServ(ctx, "UpdatePerson", &body)
+
+	respBody := &integrserv.OperationResult{
+		SoapEnvEncodingStyle: "http://schemas.xmlsoap.org/soap/encoding/",
+		XmlnsNS1:             "urn:OrionProIntf-IOrionPro",
+		XmlnsNS2:             "urn:OrionProIntf",
+
+		Result: &data,
+	}
+	err = req.PreparedReqToXMLIntegerServ(ctx, "UpdatePerson", s.integrServAddr, reqData, respBody)
 	if err != nil {
 		logger.Info("Occured the error while updating person data", err)
 		return nil, err
 	}
 
-	return result, nil
+	return &data, nil
 }
 
 func (s *Service) DeletePerson(
 	ctx context.Context,
 	sessionId string,
 	data integrserv.PersonData,
-) (*integrserv.OperationResult, error) {
+) (*integrserv.PersonData, error) {
 	op := "internal/services/persons.Service.DeletePerson"
 	logger := s.logger.With(slog.String("op", op))
 
@@ -193,18 +275,40 @@ func (s *Service) DeletePerson(
 	}
 
 	type Data struct {
+		XMLName    xml.Name
 		PersonData integrserv.PersonData
 	}
-	body := Data{
+	reqData := Data{
+		XMLName: xml.Name{
+			Local: "DeletePerson",
+		},
 		PersonData: data,
 	}
-	result, err := s.makeReqToIntegerServ(ctx, "DeletePerson", &body)
+
+	respBody := &integrserv.OperationResult{
+		SoapEnvEncodingStyle: "http://schemas.xmlsoap.org/soap/encoding/",
+		XmlnsNS1:             "urn:OrionProIntf-IOrionPro",
+		XmlnsNS2:             "urn:OrionProIntf",
+
+		Result: &data,
+	}
+	err = req.PreparedReqToXMLIntegerServ(ctx, "DeletePerson", s.integrServAddr, reqData, respBody)
 	if err != nil {
 		logger.Info("Occured the error while deleting the person", err)
 		return nil, err
 	}
 
-	return result, nil
+	return &data, nil
+}
+
+func (s *Service) BindKey(ctx context.Context, sessionId string) (*integrserv.KeyData, error) {
+	return nil, nil
+}
+func (s *Service) GetKeyData(ctx context.Context, sessionId string) (*integrserv.KeyData, error) {
+	return nil, nil
+}
+func (s *Service) UpdataKeyData(ctx context.Context, sessionId string) (*integrserv.KeyData, error) {
+	return nil, nil
 }
 
 func (s *Service) accessGuardian(ctx context.Context, sessionId string) error {
@@ -221,32 +325,4 @@ func (s *Service) accessGuardian(ctx context.Context, sessionId string) error {
 	}
 
 	return nil
-}
-
-func (s *Service) makeReqToIntegerServ(
-	ctx context.Context,
-	serverMethod string,
-	data any,
-) (*integrserv.OperationResult, error) {
-	headers := map[string]string{
-		"Content-Type": "text/xml; charset=utf-8",
-		"SOAPAction":   fmt.Sprintf("urn:OrionProIntf-IOrionPro#%s", serverMethod),
-	}
-
-	var body bytes.Buffer
-	encoder := xml.NewEncoder(&body)
-	encoder.Encode(&data)
-
-	var expectedBody integrserv.OperationResult
-
-	err := req.WithRawBody(
-		ctx,
-		"POST",
-		fmt.Sprintf("%s/soap/IOrionPro", s.integrServAddr),
-		headers,
-		body.Bytes(),
-		&expectedBody,
-	)
-
-	return &expectedBody, err
 }
