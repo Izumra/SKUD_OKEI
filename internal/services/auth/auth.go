@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 
+	"github.com/Izumra/SKUD_OKEI/domain/dto/resp"
 	"github.com/Izumra/SKUD_OKEI/domain/entity"
 	"github.com/Izumra/SKUD_OKEI/domain/provider"
 	"github.com/Izumra/SKUD_OKEI/domain/repository"
@@ -44,26 +45,29 @@ func NewService(
 	}
 }
 
-func (s *Service) Login(ctx context.Context, username, password string) (string, error) {
+func (s *Service) Login(ctx context.Context, username, password string) (*resp.SuccessAuth, error) {
 	op := "internal/services/auth.Service.Login"
 	logger := s.logger.With(slog.String("op", op))
 
 	user, err := s.usrPrvdr.UserByUsername(ctx, username)
 	if err != nil {
 		logger.Error("Occured the error while finding the user", err)
-		return "", err
+		return nil, err
 	}
 
 	sessionId, err := s.sessStorage.Create(ctx, user)
 	if err != nil {
 		logger.Error("Occured the error while creating the session", err)
-		return "", err
+		return nil, err
 	}
 
-	return sessionId, nil
+	return &resp.SuccessAuth{
+		Username:  user.Username,
+		SessionId: sessionId,
+	}, nil
 }
 
-func (s *Service) Registrate(ctx context.Context, username, password string) (string, error) {
+func (s *Service) Registrate(ctx context.Context, username, password string) (*resp.SuccessAuth, error) {
 	op := "internal/services/auth.Service.Registrate"
 	logger := s.logger.With(slog.String("op", op))
 
@@ -76,18 +80,21 @@ func (s *Service) Registrate(ctx context.Context, username, password string) (st
 	userId, err := s.usrRep.AddUser(ctx, user)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserExist) {
-			return "", ErrUserAlreadyRegistered
+			return nil, ErrUserAlreadyRegistered
 		}
 		logger.Error("Occured the error while finding the user", err)
-		return "", err
+		return nil, err
 	}
 	user.Id = userId
 
 	sessionId, err := s.sessStorage.Create(ctx, &user)
 	if err != nil {
 		logger.Error("Occured the error while creating the session", err)
-		return "", err
+		return nil, err
 	}
 
-	return sessionId, nil
+	return &resp.SuccessAuth{
+		Username:  user.Username,
+		SessionId: sessionId,
+	}, nil
 }

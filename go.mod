@@ -9,9 +9,9 @@ require (
 	github.com/beevik/etree v1.3.0 // indirect
 	github.com/fasthttp/websocket v1.5.8 // indirect
 	github.com/gofiber/contrib/websocket v1.3.0 // indirect
-	github.com/gofiber/fiber/v2 v2.52.3 // indirect
-	github.com/gofiber/fiber/v3 v3.0.0-20240322111812-5e8df0a348be // indirect
-	github.com/gofiber/utils/v2 v2.0.0-beta.3 // indirect
+	github.com/gofiber/fiber/v2 v2.52.4 // indirect
+	github.com/gofiber/fiber/v3 v3.0.0-20240325194118-7ba02c14cf53 // indirect
+	github.com/gofiber/utils/v2 v2.0.0-beta.4 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect

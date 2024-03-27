@@ -3,19 +3,20 @@ package app
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"os"
 	"time"
 
 	"github.com/Izumra/SKUD_OKEI/internal/http"
 	"github.com/Izumra/SKUD_OKEI/internal/http/controllers"
-	"github.com/gofiber/fiber/v3"
+	"github.com/Izumra/SKUD_OKEI/internal/services/auth"
+	"github.com/gofiber/fiber/v2"
 )
 
 type Services struct {
 	AuthService    controllers.AuthService
 	PersonsService controllers.PersonsService
+	EventsService  controllers.EventsService
 }
 
 type Server struct {
@@ -26,6 +27,7 @@ type Server struct {
 
 func NewServer(
 	logger *slog.Logger,
+	sessionStorage auth.SessionStorage,
 	services *Services,
 ) *Server {
 	app := fiber.New(fiber.Config{
@@ -34,8 +36,10 @@ func NewServer(
 
 	http.RegistrHandlers(
 		app,
+		sessionStorage,
 		services.AuthService,
 		services.PersonsService,
+		services.EventsService,
 	)
 
 	return &Server{
@@ -50,7 +54,7 @@ func (s *Server) Launch(ctx context.Context, port int) {
 	logger := s.logger.With(slog.String("op", op))
 
 	addr := fmt.Sprintf(":%d", port)
-	log.Println(addr)
+
 	err := s.app.Listen(addr)
 	if err != nil {
 		logger.Error("Occured the error while launching the server", slog.String("addr", addr))

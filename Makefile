@@ -16,4 +16,4 @@ run:
 	go run cmd/skud/main.go --config=config/local.yaml
 
 build:
-	GOOS=windows GOARCH=amd64 go build ./cmd/skud/main.go 
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc go build ./cmd/skud/main.go 

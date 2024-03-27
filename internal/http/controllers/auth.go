@@ -3,24 +3,33 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"github.com/Izumra/SKUD_OKEI/domain/dto/reqs"
-	"github.com/Izumra/SKUD_OKEI/internal/lib/resp"
-	"github.com/gofiber/fiber/v3"
+	"github.com/Izumra/SKUD_OKEI/domain/dto/resp"
+	"github.com/Izumra/SKUD_OKEI/internal/lib/response"
+	"github.com/Izumra/SKUD_OKEI/internal/services/auth"
+	"github.com/gofiber/fiber/v2"
+)
+
+var (
+	ErrSessionNotFound = errors.New(" Сессия пользователя не была найдена")
 )
 
 type AuthService interface {
-	Login(ctx context.Context, username, password string) (string, error)
-	Registrate(ctx context.Context, username, password string) (string, error)
+	Login(ctx context.Context, username, password string) (*resp.SuccessAuth, error)
+	Registrate(ctx context.Context, username, password string) (*resp.SuccessAuth, error)
 }
 
 type AuthController struct {
-	service AuthService
+	sessionStorage auth.SessionStorage
+	service        AuthService
 }
 
-func RegistrAuthAPI(router fiber.Router, as AuthService) {
+func RegistrAuthAPI(router fiber.Router, as AuthService, ss auth.SessionStorage) {
 	ac := AuthController{
-		service: as,
+		sessionStorage: ss,
+		service:        as,
 	}
 
 	router.Post("/login", ac.Login())
@@ -28,39 +37,54 @@ func RegistrAuthAPI(router fiber.Router, as AuthService) {
 }
 
 func (ac *AuthController) Login() fiber.Handler {
-	return func(c fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+
+		sessionId := c.Get("Authorization")
+		if sessionId != "" {
+			session, err := ac.sessionStorage.GetByID(c.Context(), sessionId)
+			if err != nil {
+				c.Status(fiber.StatusNotFound)
+				return c.JSON(response.BadRes(ErrBodyParse))
+			}
+
+			return c.JSON(response.SuccessRes(resp.SuccessAuth{
+				Username:  session.Username,
+				SessionId: sessionId,
+			}))
+		}
+
 		var data reqs.LoginBody
 		err := json.Unmarshal(c.Body(), &data)
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)
-			return c.JSON(resp.BadRes(ErrBodyParse))
+			return c.JSON(response.BadRes(ErrBodyParse))
 		}
 
 		result, err := ac.service.Login(c.Context(), data.Username, data.Password)
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
-			return c.JSON(resp.BadRes(err))
+			return c.JSON(response.BadRes(err))
 		}
 
-		return c.JSON(resp.SuccessRes(result))
+		return c.JSON(response.SuccessRes(result))
 	}
 }
 
 func (ac *AuthController) Registrate() fiber.Handler {
-	return func(c fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
 		var data reqs.RegBody
 		err := json.Unmarshal(c.Body(), &data)
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)
-			return c.JSON(resp.BadRes(ErrBodyParse))
+			return c.JSON(response.BadRes(ErrBodyParse))
 		}
 
 		result, err := ac.service.Registrate(c.Context(), data.Username, data.Password)
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
-			return c.JSON(resp.BadRes(err))
+			return c.JSON(response.BadRes(err))
 		}
 
-		return c.JSON(resp.SuccessRes(result))
+		return c.JSON(response.SuccessRes(result))
 	}
 }

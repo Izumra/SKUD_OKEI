@@ -2,65 +2,145 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/xml"
+	"fmt"
+	"log"
+	"strconv"
+	"time"
 
+	"github.com/Izumra/SKUD_OKEI/domain/dto/integrserv"
 	"github.com/Izumra/SKUD_OKEI/domain/dto/reqs"
-	"github.com/Izumra/SKUD_OKEI/internal/lib/resp"
-	"github.com/gofiber/fiber/v3"
+	"github.com/Izumra/SKUD_OKEI/internal/lib/response"
+	"github.com/Izumra/SKUD_OKEI/internal/services/auth"
+	"github.com/gofiber/fiber/v2"
 )
 
 type EventsService interface {
-	Login(ctx context.Context, username, password string) (string, error)
-	Registrate(ctx context.Context, username, password string) (string, error)
+	GetEvents(ctx context.Context, sessionId string, eventsFilter *integrserv.EventFilter, offset int64, count int64) ([]*integrserv.Event, error)
+	GetEventsCount(ctx context.Context, sessionId string, eventsFilter *integrserv.EventFilter) (int64, error)
 }
 
 type EventsController struct {
-	service EventsService
+	sessStorage auth.SessionStorage
+	service     EventsService
 }
 
-func RegistrEventAPI(router fiber.Router, es EventsService) {
+func RegistrEventAPI(router fiber.Router, es EventsService, ss auth.SessionStorage) {
 	ec := EventsController{
-		service: es,
+		sessStorage: ss,
+		service:     es,
 	}
 
 	router.Post("/count", ec.GetEventsCount())
-	router.Post("/", ec.GetEvents())
+	router.Post("/:offset/:count", ec.GetEvents())
 }
 
 func (ec *EventsController) GetEventsCount() fiber.Handler {
-	return func(c fiber.Ctx) error {
-		var data reqs.LoginBody
-		err := json.Unmarshal(c.Body(), &data)
+	return func(c *fiber.Ctx) error {
+
+		sessionId := c.Get("Authorization")
+
+		reqBody := reqs.ReqEventFilter{}
+
+		err := c.BodyParser(&reqBody)
 		if err != nil {
+			log.Println(err)
 			c.Status(fiber.StatusBadRequest)
-			return c.JSON(resp.BadRes(ErrBodyParse))
+			return c.JSON(response.BadRes(ErrBodyParse))
 		}
 
-		result, err := ec.service.Login(c.Context(), data.Username, data.Password)
+		layout := "2006-01-02T15:04:05"
+		beginTime, err := time.Parse(layout, reqBody.BeginTime)
+		if err != nil {
+			log.Println(err)
+			c.Status(fiber.StatusBadRequest)
+			return c.JSON(response.BadRes(ErrBodyParse))
+		}
+
+		endTime, err := time.Parse(layout, reqBody.EndTime)
+		if err != nil {
+			log.Println(err)
+			c.Status(fiber.StatusBadRequest)
+			return c.JSON(response.BadRes(ErrBodyParse))
+		}
+
+		filter := integrserv.EventFilter{
+			XMLName: xml.Name{
+				Local: "GetEventsCount",
+			},
+			BeginTime:  beginTime,
+			EndTime:    endTime,
+			EventTypes: reqBody.EventTypes,
+			Persons:    reqBody.Persons,
+		}
+		result, err := ec.service.GetEventsCount(c.Context(), sessionId, &filter)
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
-			return c.JSON(resp.BadRes(err))
+			return c.JSON(response.BadRes(err))
 		}
 
-		return c.JSON(resp.SuccessRes(result))
+		return c.JSON(response.SuccessRes(result))
 	}
 }
 
 func (ec *EventsController) GetEvents() fiber.Handler {
-	return func(c fiber.Ctx) error {
-		var data reqs.RegBody
-		err := json.Unmarshal(c.Body(), &data)
+	return func(c *fiber.Ctx) error {
+
+		sessionId := c.Get("Authorization")
+
+		reqBody := reqs.ReqEventFilter{}
+
+		err := c.BodyParser(&reqBody)
+		if err != nil {
+			log.Println(err)
+			c.Status(fiber.StatusBadRequest)
+			return c.JSON(response.BadRes(ErrBodyParse))
+		}
+
+		layout := "2006-01-02T15:04:05"
+		beginTime, err := time.Parse(layout, reqBody.BeginTime)
+		if err != nil {
+			log.Println(err)
+			c.Status(fiber.StatusBadRequest)
+			return c.JSON(response.BadRes(ErrBodyParse))
+		}
+
+		endTime, err := time.Parse(layout, reqBody.EndTime)
+		if err != nil {
+			log.Println(err)
+			c.Status(fiber.StatusBadRequest)
+			return c.JSON(response.BadRes(ErrBodyParse))
+		}
+
+		offsetParam := c.Params("offset", "0")
+		offset, err := strconv.ParseInt(offsetParam, 10, 0)
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)
-			return c.JSON(resp.BadRes(ErrBodyParse))
+			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат шага смещения")))
 		}
 
-		result, err := ec.service.Registrate(c.Context(), data.Username, data.Password)
+		countParam := c.Params("count", "0")
+		count, err := strconv.ParseInt(countParam, 10, 0)
+		if err != nil {
+			c.Status(fiber.StatusBadRequest)
+			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат количества событий")))
+		}
+
+		filter := integrserv.EventFilter{
+			XMLName: xml.Name{
+				Local: "GetEvents",
+			},
+			BeginTime:  beginTime,
+			EndTime:    endTime,
+			EventTypes: reqBody.EventTypes,
+			Persons:    reqBody.Persons,
+		}
+		result, err := ec.service.GetEvents(c.Context(), sessionId, &filter, offset, count)
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
-			return c.JSON(resp.BadRes(err))
+			return c.JSON(response.BadRes(err))
 		}
 
-		return c.JSON(resp.SuccessRes(result))
+		return c.JSON(response.SuccessRes(result))
 	}
 }

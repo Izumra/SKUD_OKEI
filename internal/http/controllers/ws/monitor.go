@@ -6,7 +6,7 @@ import (
 
 	"github.com/Izumra/SKUD_OKEI/domain/dto/integrserv"
 	"github.com/Izumra/SKUD_OKEI/domain/dto/reqs"
-	"github.com/Izumra/SKUD_OKEI/internal/lib/resp"
+	"github.com/Izumra/SKUD_OKEI/internal/lib/response"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 )
@@ -17,8 +17,8 @@ var (
 )
 
 type MonitorService interface {
-	GetEvents(ctx context.Context, sesionId string) ([]*integrserv.Event, error)
-	GetEventsCount(ctx context.Context, sessionId string, eventsFilter *reqs.EventFilter) (int64, error)
+	GetEvents(ctx context.Context, sesionId string) (*integrserv.Event, error)
+	GetEventsCount(ctx context.Context, sessionId string, eventsFilter *reqs.ReqEventFilter) (int64, error)
 }
 
 type MonitorController struct {
@@ -43,7 +43,7 @@ func (mc *MonitorController) CheckRegisteredUpgrade() fiber.Handler {
 			return c.Next()
 		} else if sessionId == "" {
 			c.Status(fiber.ErrForbidden.Code)
-			return c.JSON(resp.BadRes(ErrSessionRequired))
+			return c.JSON(response.BadRes(ErrSessionRequired))
 		}
 		return fiber.ErrUpgradeRequired
 	}
@@ -52,22 +52,7 @@ func (mc *MonitorController) CheckRegisteredUpgrade() fiber.Handler {
 func (mc *MonitorController) GetEventsCount() fiber.Handler {
 	return websocket.New(func(c *websocket.Conn) {
 		for {
-			sessionId := c.Locals("sessionID").(string)
-
-			var filter reqs.EventFilter
-			if err := c.ReadJSON(&filter); err != nil {
-				c.WriteJSON(resp.BadRes(ErrWrongReqBody))
-				return
-			}
-
-			ctx := context.TODO()
-			count, err := mc.service.GetEventsCount(ctx, sessionId, &filter)
-			if err != nil {
-				c.WriteJSON(resp.BadRes(err))
-				return
-			}
-
-			c.WriteJSON(resp.SuccessRes(count))
+			_ = c.Locals("sessionID").(string)
 		}
 	})
 }
