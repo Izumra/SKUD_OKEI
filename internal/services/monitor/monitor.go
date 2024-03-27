@@ -37,11 +37,40 @@ func NewService(
 	}
 }
 
-func (s *Service) GetEvents(ctx context.Context, sesionId string) (*integrserv.Event, error) {
-	return nil, nil
+func (s *Service) GetEvents(ctx context.Context, sessionId string, eventsFilter *reqs.EventFilter) ([]*integrserv.Event, error) {
+	op := "internal/services/monitor.Service.GetEvents"
+	logger := s.logger.With(slog.String("op", op))
+
+	user, err := s.sessStore.GetByID(ctx, sessionId)
+	if err != nil {
+		if errors.Is(err, cache.ErrSessionNotFound) {
+			return nil, ErrSessionTokenInvalid
+		}
+		return nil, err
+	}
+
+	if user.Role == valueobject.StudentRole {
+		return nil, ErrAccessDenied
+	}
+
+	//TODO: making the req structure for the event filter
+	var expBody []*integrserv.Event
+	respBody := &integrserv.OperationResultEvents{
+		SoapEnvEncodingStyle: "http://schemas.xmlsoap.org/soap/encoding/",
+		XmlnsNS1:             "urn:OrionProIntf-IOrionPro",
+		XmlnsNS2:             "urn:OrionProIntf",
+
+		Result: &expBody,
+	}
+	err = req.PreparedReqToXMLIntegerServ(ctx, "GetEvents", s.integrServAddr, eventsFilter, respBody)
+	if err != nil {
+		logger.Info("Occured the error while taking events by filter", err)
+		return nil, err
+	}
+	return expBody, nil
 }
 func (s *Service) GetEventsCount(ctx context.Context, sessionId string, eventsFilter *reqs.EventFilter) (int64, error) {
-	op := "internal/services/monitor.Service.DeletePerson"
+	op := "internal/services/monitor.Service.GetEventsCount"
 	logger := s.logger.With(slog.String("op", op))
 
 	user, err := s.sessStore.GetByID(ctx, sessionId)

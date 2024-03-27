@@ -14,3 +14,6 @@ add_sql_migration:
 
 run: 
 	go run cmd/skud/main.go --config=config/local.yaml
+
+build:
+	GOOS=windows GOARCH=amd64 go build ./cmd/skud/main.go 

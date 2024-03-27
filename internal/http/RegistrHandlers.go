@@ -9,6 +9,7 @@ func RegistrHandlers(
 	app *fiber.App,
 	authService controllers.AuthService,
 	personService controllers.PersonsService,
+	eventsService controllers.EventsController,
 ) {
 	api := app.Group("/api")
 
@@ -16,4 +17,8 @@ func RegistrHandlers(
 
 	personsRouter := api.Group("/persons")
 	controllers.RegistrPersonsAPI(personsRouter, personService)
+
+	eventsRouter := api.Group("/events")
+	controllers.RegistrEventAPI(eventsRouter, eventsService)
+
 }
