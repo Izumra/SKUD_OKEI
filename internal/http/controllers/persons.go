@@ -6,14 +6,17 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/Izumra/SKUD_OKEI/domain/dto/integrserv"
+	"github.com/Izumra/SKUD_OKEI/domain/dto/resp"
 	"github.com/Izumra/SKUD_OKEI/internal/lib/response"
 	"github.com/gofiber/fiber/v2"
 )
 
 var (
-	ErrBodyParse = errors.New(" Неверный формат тела запроса")
+	ErrBodyParse  = errors.New(" Неверный формат тела запроса")
+	ErrParamParse = errors.New(" Неверный формат параметра запроса")
 )
 
 type PersonsService interface {
@@ -23,6 +26,9 @@ type PersonsService interface {
 	AddPerson(ctx context.Context, sessionId string, data integrserv.PersonData) (*integrserv.PersonData, error)
 	UpdatePerson(ctx context.Context, sessionId string, data integrserv.PersonData) (*integrserv.PersonData, error)
 	DeletePerson(ctx context.Context, sessionId string, data integrserv.PersonData) (*integrserv.PersonData, error)
+	GetDepartments(ctx context.Context, sessionId string) ([]*integrserv.Department, error)
+	GetDaylyUserStats(ctx context.Context, sessionId string, id int64, date time.Time) ([]*resp.Activity, error)
+	GetMonthlyUserStats(ctx context.Context, sessionId string, id int64, monthTime time.Time) ([]*resp.Activity, error)
 }
 
 type PersonsController struct {
@@ -35,11 +41,14 @@ func RegistrPersonsAPI(router fiber.Router, ps PersonsService) {
 	}
 
 	router.Get("/count", pc.GetPersonsCount())
+	router.Get("/departments", pc.GetDepartments())
 	router.Post("/", pc.AddPerson())
 	router.Delete("/", pc.DeletePerson())
 	router.Put("/", pc.UpdatePerson())
 	router.Post("/filter/:offset/:count/", pc.GetPersons())
 	router.Get("/:id", pc.GetPersonById())
+	router.Get("/activity/dayly/:date/:id", pc.GetDaylyUserStats())
+	router.Get("/activity/monthly/:date/:id", pc.GetMonthlyUserStats())
 }
 
 func (pc *PersonsController) GetPersons() fiber.Handler {
@@ -167,6 +176,78 @@ func (pc *PersonsController) DeletePerson() fiber.Handler {
 		}
 
 		result, err := pc.service.DeletePerson(c.Context(), session, data)
+		if err != nil {
+			c.Status(fiber.StatusInternalServerError)
+			return c.JSON(response.BadRes(err))
+		}
+
+		return c.JSON(response.SuccessRes(result))
+	}
+}
+
+func (pc *PersonsController) GetDepartments() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		session := c.Get("Authorization")
+
+		result, err := pc.service.GetDepartments(c.Context(), session)
+		if err != nil {
+			c.Status(fiber.StatusInternalServerError)
+			return c.JSON(response.BadRes(err))
+		}
+
+		return c.JSON(response.SuccessRes(result))
+	}
+}
+
+func (pc *PersonsController) GetDaylyUserStats() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		session := c.Get("Authorization")
+
+		idParam := c.Params("id", "0")
+
+		id, err := strconv.ParseInt(idParam, 10, 0)
+		if err != nil {
+			c.Status(fiber.StatusBadRequest)
+			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат id пользователя")))
+		}
+
+		layout := "2006-01-02T15:04:05"
+		date, err := time.Parse(layout, c.Params("date", time.Now().Format(layout)))
+		if err != nil {
+			c.Status(fiber.StatusBadRequest)
+			return c.JSON(response.BadRes(ErrParamParse))
+		}
+
+		result, err := pc.service.GetDaylyUserStats(c.Context(), session, id, date)
+		if err != nil {
+			c.Status(fiber.StatusInternalServerError)
+			return c.JSON(response.BadRes(err))
+		}
+
+		return c.JSON(response.SuccessRes(result))
+	}
+}
+
+func (pc *PersonsController) GetMonthlyUserStats() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		session := c.Get("Authorization")
+
+		idParam := c.Params("id", "0")
+
+		id, err := strconv.ParseInt(idParam, 10, 0)
+		if err != nil {
+			c.Status(fiber.StatusBadRequest)
+			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат id пользователя")))
+		}
+
+		layout := "2006-01-02T15:04:05"
+		monthTime, err := time.Parse(layout, c.Params("date", time.Now().Format(layout)))
+		if err != nil {
+			c.Status(fiber.StatusBadRequest)
+			return c.JSON(response.BadRes(ErrParamParse))
+		}
+
+		result, err := pc.service.GetMonthlyUserStats(c.Context(), session, id, monthTime)
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
 			return c.JSON(response.BadRes(err))

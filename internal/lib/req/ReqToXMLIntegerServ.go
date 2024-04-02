@@ -27,8 +27,7 @@ func ReqToXMLIntegerServ(ctx context.Context, method string, url string, headers
 	}
 	defer resp.Body.Close()
 
-	// data, _ := xml.Marshal(expBody)
-	// log.Println(string(data))
+	//log.Println(string(body))
 
 	// stream, _ := io.ReadAll(resp.Body)
 	// log.Println(string(stream))

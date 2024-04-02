@@ -6,9 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
+	"sync"
+	"time"
 
 	"github.com/Izumra/SKUD_OKEI/domain/dto/integrserv"
+	"github.com/Izumra/SKUD_OKEI/domain/dto/resp"
 	valueobject "github.com/Izumra/SKUD_OKEI/domain/value-object"
+	"github.com/Izumra/SKUD_OKEI/internal/http/controllers"
 	"github.com/Izumra/SKUD_OKEI/internal/lib/req"
 	"github.com/Izumra/SKUD_OKEI/internal/services/auth"
 	"github.com/Izumra/SKUD_OKEI/internal/storage/cache"
@@ -16,22 +21,26 @@ import (
 
 var (
 	ErrSessionTokenInvalid = errors.New("сессия пользователя не действительна")
+	ErrGettingStats        = errors.New("неожиданная ошибка при загрузке статистики пользователя")
 	ErrAccessDenied        = errors.New("вам отказано в доступе")
 )
 
 type Service struct {
 	logger         *slog.Logger
+	eventsService  controllers.EventsService
 	sessStore      auth.SessionStorage
 	integrServAddr string
 }
 
 func NewService(
 	logger *slog.Logger,
+	eventsService controllers.EventsService,
 	sessStore auth.SessionStorage,
 	integrServAddr string,
 ) *Service {
 	return &Service{
 		logger,
+		eventsService,
 		sessStore,
 		fmt.Sprintf("%s/soap/IOrionPro", integrServAddr),
 	}
@@ -301,6 +310,44 @@ func (s *Service) DeletePerson(
 	return &data, nil
 }
 
+func (s *Service) GetDepartments(
+	ctx context.Context,
+	sessionId string,
+) ([]*integrserv.Department, error) {
+	op := "internal/services/persons.Service.GetDepartments"
+	logger := s.logger.With(slog.String("op", op))
+
+	err := s.accessGuardian(ctx, sessionId)
+	if err != nil {
+		return nil, err
+	}
+
+	type Data struct {
+		XMLName xml.Name
+	}
+	reqData := Data{
+		XMLName: xml.Name{
+			Local: "GetDepartments",
+		},
+	}
+
+	var departments []*integrserv.Department
+	respBody := &integrserv.OperationResultDepartments{
+		SoapEnvEncodingStyle: "http://schemas.xmlsoap.org/soap/encoding/",
+		XmlnsNS1:             "urn:OrionProIntf-IOrionPro",
+		XmlnsNS2:             "urn:OrionProIntf",
+
+		Result: &departments,
+	}
+	err = req.PreparedReqToXMLIntegerServ(ctx, "GetDepartments", s.integrServAddr, reqData, respBody)
+	if err != nil {
+		logger.Info("Occured the error while deleting the person", err)
+		return nil, err
+	}
+
+	return departments, nil
+}
+
 func (s *Service) BindKey(ctx context.Context, sessionId string) (*integrserv.KeyData, error) {
 	return nil, nil
 }
@@ -309,6 +356,157 @@ func (s *Service) GetKeyData(ctx context.Context, sessionId string) (*integrserv
 }
 func (s *Service) UpdataKeyData(ctx context.Context, sessionId string) (*integrserv.KeyData, error) {
 	return nil, nil
+}
+
+func (s *Service) GetDaylyUserStats(ctx context.Context, sessionId string, id int64, date time.Time) ([]*resp.Activity, error) {
+	op := "internal/services/persons.Service.GetDaylyUserStats"
+	logger := s.logger.With(slog.String("op", op))
+
+	err := s.accessGuardian(ctx, sessionId)
+	if err != nil {
+		return nil, err
+	}
+
+	var stats sync.WaitGroup
+	chanErr := make(chan error)
+
+	response := make([]*resp.Activity, 17)
+	for i := 0; i < 17; i++ {
+		stats.Add(1)
+		hour := i
+		go func() {
+			defer stats.Done()
+
+			beginTime := time.Date(date.Year(), date.Month(), date.Day(), -(1 + hour), 0, 0, 0, date.Location())
+			endTime := time.Date(date.Year(), date.Month(), date.Day(), -(2 + hour), 0, 0, 0, date.Location())
+
+			filter := integrserv.EventFilter{
+				XMLName: xml.Name{
+					Local: "GetEvents",
+				},
+				BeginTime: beginTime,
+				EndTime:   endTime,
+				Persons: integrserv.Persons{
+					PersonData: []*integrserv.PersonData{
+						{
+							Id: id,
+						},
+					},
+				},
+			}
+
+			eventsComing, err := s.eventsService.GetEvents(ctx, &filter, 0, 0)
+			if err != nil {
+				chanErr <- err
+				return
+			}
+
+			var countComing int
+			var countLeaving int
+			for _, e := range eventsComing {
+				if e.PassMode == 1 {
+					countComing++
+				} else if e.PassMode == 2 {
+					countLeaving++
+				}
+			}
+
+			response[hour] = &resp.Activity{
+				Time:    endTime,
+				Coming:  countComing,
+				Leaving: countLeaving,
+			}
+		}()
+	}
+
+	go func() {
+		stats.Wait()
+		slices.Reverse(response)
+		close(chanErr)
+	}()
+
+	if err := <-chanErr; err != nil {
+		logger.Error("Occured the error while requesting for the day stats", err)
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (s *Service) GetMonthlyUserStats(ctx context.Context, sessionId string, id int64, month time.Time) ([]*resp.Activity, error) {
+	op := "internal/services/persons.Service.GetMonthlyUserStats"
+	logger := s.logger.With(slog.String("op", op))
+
+	err := s.accessGuardian(ctx, sessionId)
+	if err != nil {
+		return nil, err
+	}
+
+	var stats sync.WaitGroup
+	chanErr := make(chan error)
+
+	count := time.Date(month.Year(), month.Month(), 0, 0, 0, 0, 0, time.UTC).Day()
+	response := make([]*resp.Activity, count)
+	for i := 0; i < count; i++ {
+		stats.Add(1)
+		day := i
+		go func() {
+			defer stats.Done()
+
+			beginTime := time.Date(month.Year(), month.Month(), -(day + 1), 0, 0, 0, 0, month.Location())
+			endTime := time.Date(month.Year(), month.Month(), -(day + 1), 24, 0, 0, 0, month.Location())
+
+			filter := integrserv.EventFilter{
+				XMLName: xml.Name{
+					Local: "GetEvents",
+				},
+				BeginTime: beginTime,
+				EndTime:   endTime,
+				Persons: integrserv.Persons{
+					PersonData: []*integrserv.PersonData{
+						{
+							Id: id,
+						},
+					},
+				},
+			}
+
+			eventsComing, err := s.eventsService.GetEvents(ctx, &filter, 0, 0)
+			if err != nil {
+				chanErr <- err
+				return
+			}
+
+			var countComing int
+			var countLeaving int
+			for _, e := range eventsComing {
+				if e.PassMode == 1 {
+					countComing++
+				} else if e.PassMode == 2 {
+					countLeaving++
+				}
+			}
+
+			response[day] = &resp.Activity{
+				Time:    endTime,
+				Coming:  countComing,
+				Leaving: countLeaving,
+			}
+		}()
+	}
+
+	go func() {
+		stats.Wait()
+		slices.Reverse(response)
+		close(chanErr)
+	}()
+
+	if err := <-chanErr; err != nil {
+		logger.Error("Occured the error while requesting for the day stats", err)
+		return nil, err
+	}
+
+	return response, nil
 }
 
 func (s *Service) accessGuardian(ctx context.Context, sessionId string) error {

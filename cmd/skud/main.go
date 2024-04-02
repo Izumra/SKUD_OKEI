@@ -9,6 +9,8 @@ import (
 
 	"github.com/Izumra/SKUD_OKEI/internal/app"
 	"github.com/Izumra/SKUD_OKEI/internal/services/auth"
+	"github.com/Izumra/SKUD_OKEI/internal/services/events"
+	"github.com/Izumra/SKUD_OKEI/internal/services/key"
 	"github.com/Izumra/SKUD_OKEI/internal/services/persons"
 	"github.com/Izumra/SKUD_OKEI/internal/storage/cache/embedded"
 	"github.com/Izumra/SKUD_OKEI/internal/storage/main/sqlite"
@@ -28,10 +30,16 @@ func main() {
 
 	sessStore := embedded.NewSessStore()
 
+	authService := auth.NewService(logger, sessStore, db, db)
+	cardService := key.NewService(logger, sessStore, cfg.Server.IntegerServAddr)
+	eventsService := events.NewService(logger, sessStore, cfg.Server.IntegerServAddr)
+	personsService := persons.NewService(logger, eventsService, sessStore, cfg.Server.IntegerServAddr)
+
 	services := app.Services{
-		AuthService:    auth.NewService(logger, sessStore, db, db),
-		PersonsService: persons.NewService(logger, sessStore, cfg.Server.IntegerServAddr),
-		//EventsService:  events.NewService(logger, sessStore, cfg.Server.IntegerServAddr),
+		AuthService:    authService,
+		EventsService:  eventsService,
+		PersonsService: personsService,
+		CardService:    cardService,
 	}
 
 	server := app.NewServer(logger, sessStore, &services)

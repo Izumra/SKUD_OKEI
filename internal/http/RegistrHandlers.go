@@ -13,6 +13,7 @@ func RegistrHandlers(
 	authService controllers.AuthService,
 	personService controllers.PersonsService,
 	eventsService controllers.EventsService,
+	cardService controllers.CardService,
 ) {
 	app.Use(cors.New())
 
@@ -26,4 +27,6 @@ func RegistrHandlers(
 	eventsRouter := api.Group("/events")
 	controllers.RegistrEventAPI(eventsRouter, eventsService, sessionStorage)
 
+	cardRouter := api.Group("/card")
+	controllers.RegistrCardAPI(cardRouter, cardService)
 }

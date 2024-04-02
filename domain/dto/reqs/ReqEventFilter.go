@@ -7,6 +7,6 @@ import (
 type ReqEventFilter struct {
 	BeginTime  string
 	EndTime    string
-	EventTypes []integrserv.EventTypes
-	Persons    []integrserv.PersonData
+	EventTypes []*integrserv.EventType
+	Persons    []*integrserv.PersonData
 }

@@ -17,6 +17,7 @@ type Services struct {
 	AuthService    controllers.AuthService
 	PersonsService controllers.PersonsService
 	EventsService  controllers.EventsService
+	CardService    controllers.CardService
 }
 
 type Server struct {
@@ -40,6 +41,7 @@ func NewServer(
 		services.AuthService,
 		services.PersonsService,
 		services.EventsService,
+		services.CardService,
 	)
 
 	return &Server{

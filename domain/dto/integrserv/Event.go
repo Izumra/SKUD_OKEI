@@ -13,46 +13,72 @@ const (
 	EventItemSECTIONGROUP
 )
 
-// <SOAP-ENV:TEvent id="36" xsi:type="NS2:TEvent">
-//
-//	    <EventId xsi:type="xsd:string">{62BCF9B1-06C0-EE11-9690-A87EEA245DFF}</EventId>
-//	    <EventDate xsi:type="xsd:dateTime">2024-01-31T12:02:30.000+05:00</EventDate>
-//	    <Description xsi:type="xsd:string">2: Выход   Дверь 2,   Считыватель 2, Прибор 3</Description>
-//	    <ZoneAddress xsi:type="xsd:int">2</ZoneAddress>
-//	    <AccessPointId xsi:type="xsd:int">2</AccessPointId>
-//	    <AccessZoneId xsi:type="xsd:int">1</AccessZoneId>
-//	    <PassMode xsi:type="xsd:int">2</PassMode>
-//	    <CardNo xsi:type="xsd:string">08003500673CEC01</CardNo>
-//	    <PersonId xsi:type="xsd:int">2123</PersonId>
-//	    <LastName xsi:type="xsd:string">Кузьмина </LastName>
-//	    <FirstName xsi:type="xsd:string">Полина</FirstName>
-//	    <MiddleName xsi:type="xsd:string">Сергеевна</MiddleName>
-//	    <ItemId xsi:type="xsd:int">11</ItemId>
-//	    <ItemType xsi:type="xsd:string">READER</ItemType>
-//	</SOAP-ENV:TEvent>
+// {
+// 	"EventId": "{6B8D9F38-CEEC-EE11-9692-A87EEA245DFF}",
+// 	"EventDate": "2024-03-28T11:41:36+05:00",
+// 	"PassMode": 1,
+// 	"LastName": "",
+// 	"FirstName": "",
+// 	"MiddleName": "",
+// 	"TabNum": "",
+// 	"PersonId": 0,
+// 	"CardNo": "",
+// 	"Description": "2: Вход  7800090082942101 Дверь 2,  7800090082942101 Считыватель ",
+// 	"AccessPointId": 2
+// }
 
-// <SOAP-ENV:TEvent id="38" xsi:type="NS2:TEvent">
-//
-//	    <EventId xsi:type="xsd:string">{63BCF9B1-06C0-EE11-9690-A87EEA245DFF}</EventId>
-//	    <EventDate xsi:type="xsd:dateTime">2024-01-31T12:02:36.000+05:00</EventDate>
-//	    <Description xsi:type="xsd:string">2: Вход   Дверь 2,   Считыватель 1, Прибор 3</Description>
-//	    <ZoneAddress xsi:type="xsd:int">1</ZoneAddress>
-//	    <AccessPointId xsi:type="xsd:int">2</AccessPointId>
-//	    <AccessZoneId xsi:type="xsd:int">2</AccessZoneId>
-//	    <PassMode xsi:type="xsd:int">1</PassMode>
-//	    <CardNo xsi:type="xsd:string">D700000021D6DE01</CardNo>
-//	    <PersonId xsi:type="xsd:int">1873</PersonId>
-//	    <LastName xsi:type="xsd:string">Совертков</LastName>
-//	    <FirstName xsi:type="xsd:string">Семен</FirstName>
-//	    <MiddleName xsi:type="xsd:string">Евгеньевич</MiddleName>
-//	    <ItemId xsi:type="xsd:int">10</ItemId>
-//	    <ItemType xsi:type="xsd:string">READER</ItemType>
-//	</SOAP-ENV:TEvent>
+// {
+// 	"EventId": "{6B8D9F38-CEEC-EE11-9692-A87EEA245DFF}",
+// 	"EventDate": "2024-03-28T11:41:36+05:00",
+// 	"PassMode": 1,
+// 	"LastName": "",
+// 	"FirstName": "",
+// 	"MiddleName": "",
+// 	"TabNum": "",
+// 	"PersonId": 0,
+// 	"CardNo": "",
+// 	"Description": "2: Вход  7800090082942101 Дверь 2,  7800090082942101 Считыватель ",
+// 	"AccessPointId": 2
+// },
+// {
+// 	"EventId": "{F9FBA73E-CEEC-EE11-9692-A87EEA245DFF}",
+// 	"EventDate": "2024-03-28T11:41:46+05:00",
+// 	"PassMode": 1,
+// 	"LastName": "Загуменников ",
+// 	"FirstName": "Марк ",
+// 	"MiddleName": "Юрьевич",
+// 	"TabNum": "",
+// 	"PersonId": 764,
+// 	"CardNo": "A300090091993501",
+// 	"Description": "2: Вход   Дверь 2,   Считыватель 1, Прибор 3",
+// 	"AccessPointId": 2
+// },
+
+// {
+// 	"EventId": "{1FF5748F-82ED-EE11-9692-A87EEA245DFF}",
+// 	"EventDate": "2024-03-29T09:12:32+05:00",
+// 	"PassMode": 1,
+// 	"LastName": "Кондауров ",
+// 	"FirstName": "Владимир ",
+// 	"MiddleName": "Максимович",
+// 	"TabNum": "",
+// 	"PersonId": 761,
+// 	"CardNo": "BD000800B3D85801",
+// 0011786328
+// 	"Description": "1: Вход   Дверь 1,   Считыватель 1, Прибор 2",
+// 	"AccessPointId": 1
+// },
+
 type Event struct {
-	EventId     string
-	EventTypeId int64
-	EventDate   time.Time
-	Description string
-	ItemId      int64
-	ItemType    int
+	EventId       string
+	EventDate     time.Time
+	PassMode      int
+	LastName      string
+	FirstName     string
+	MiddleName    string
+	TabNum        string
+	PersonId      int64
+	CardNo        string
+	Description   string
+	AccessPointId int
 }

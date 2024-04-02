@@ -16,8 +16,8 @@ import (
 )
 
 type EventsService interface {
-	GetEvents(ctx context.Context, sessionId string, eventsFilter *integrserv.EventFilter, offset int64, count int64) ([]*integrserv.Event, error)
-	GetEventsCount(ctx context.Context, sessionId string, eventsFilter *integrserv.EventFilter) (int64, error)
+	GetEvents(ctx context.Context, eventsFilter *integrserv.EventFilter, offset int64, count int64) ([]*integrserv.Event, error)
+	GetEventsCount(ctx context.Context, eventsFilter *integrserv.EventFilter) (int64, error)
 }
 
 type EventsController struct {
@@ -38,7 +38,7 @@ func RegistrEventAPI(router fiber.Router, es EventsService, ss auth.SessionStora
 func (ec *EventsController) GetEventsCount() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		sessionId := c.Get("Authorization")
+		_ = c.Get("Authorization")
 
 		reqBody := reqs.ReqEventFilter{}
 
@@ -68,12 +68,16 @@ func (ec *EventsController) GetEventsCount() fiber.Handler {
 			XMLName: xml.Name{
 				Local: "GetEventsCount",
 			},
-			BeginTime:  beginTime,
-			EndTime:    endTime,
-			EventTypes: reqBody.EventTypes,
-			Persons:    reqBody.Persons,
+			BeginTime: beginTime,
+			EndTime:   endTime,
+			EventTypes: integrserv.EventTypes{
+				EventType: reqBody.EventTypes,
+			},
+			Persons: integrserv.Persons{
+				PersonData: reqBody.Persons,
+			},
 		}
-		result, err := ec.service.GetEventsCount(c.Context(), sessionId, &filter)
+		result, err := ec.service.GetEventsCount(c.Context(), &filter)
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
 			return c.JSON(response.BadRes(err))
@@ -86,7 +90,7 @@ func (ec *EventsController) GetEventsCount() fiber.Handler {
 func (ec *EventsController) GetEvents() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		sessionId := c.Get("Authorization")
+		_ = c.Get("Authorization")
 
 		reqBody := reqs.ReqEventFilter{}
 
@@ -130,12 +134,17 @@ func (ec *EventsController) GetEvents() fiber.Handler {
 			XMLName: xml.Name{
 				Local: "GetEvents",
 			},
-			BeginTime:  beginTime,
-			EndTime:    endTime,
-			EventTypes: reqBody.EventTypes,
-			Persons:    reqBody.Persons,
+			BeginTime: beginTime,
+			EndTime:   endTime,
+			EventTypes: integrserv.EventTypes{
+				EventType: reqBody.EventTypes,
+			},
+			Persons: integrserv.Persons{
+				PersonData: reqBody.Persons,
+			},
 		}
-		result, err := ec.service.GetEvents(c.Context(), sessionId, &filter, offset, count)
+
+		result, err := ec.service.GetEvents(c.Context(), &filter, offset, count)
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
 			return c.JSON(response.BadRes(err))

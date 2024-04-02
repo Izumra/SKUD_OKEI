@@ -6,7 +6,6 @@ import (
 	"log/slog"
 
 	"github.com/Izumra/SKUD_OKEI/domain/dto/integrserv"
-	"github.com/Izumra/SKUD_OKEI/domain/dto/reqs"
 	"github.com/Izumra/SKUD_OKEI/internal/lib/req"
 	"github.com/Izumra/SKUD_OKEI/internal/services/auth"
 )
@@ -29,19 +28,19 @@ func NewService(
 	}
 }
 
-func (s *Service) GetEvents(ctx context.Context, sessionId string, eventsFilter *reqs.ReqEventFilter) ([]*integrserv.Event, error) {
+func (s *Service) GetEvents(ctx context.Context, eventsFilter *integrserv.EventFilter, offset int64, count int64) ([]*integrserv.Event, error) {
 	op := "internal/services/events.Service.GetEvents"
 	logger := s.logger.With(slog.String("op", op))
 
 	var expBody []*integrserv.Event
-	respBody := &integrserv.OperationResultEvents{
+	respBody := integrserv.OperationResultEvents{
 		SoapEnvEncodingStyle: "http://schemas.xmlsoap.org/soap/encoding/",
 		XmlnsNS1:             "urn:OrionProIntf-IOrionPro",
 		XmlnsNS2:             "urn:OrionProIntf",
 
 		Result: &expBody,
 	}
-	err := req.PreparedReqToXMLIntegerServ(ctx, "GetEvents", s.integrServAddr, eventsFilter, respBody)
+	err := req.PreparedReqToXMLIntegerServ(ctx, "GetEvents", s.integrServAddr, eventsFilter, &respBody)
 	if err != nil {
 		logger.Info("Occured the error while taking events by filter", err)
 		return nil, err
@@ -49,7 +48,7 @@ func (s *Service) GetEvents(ctx context.Context, sessionId string, eventsFilter 
 	return expBody, nil
 }
 
-func (s *Service) GetEventsCount(ctx context.Context, sessionId string, eventsFilter *reqs.ReqEventFilter) (int64, error) {
+func (s *Service) GetEventsCount(ctx context.Context, eventsFilter *integrserv.EventFilter) (int64, error) {
 	op := "internal/services/events.Service.GetEventsCount"
 	logger := s.logger.With(slog.String("op", op))
 
