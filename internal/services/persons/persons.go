@@ -358,7 +358,7 @@ func (s *Service) UpdataKeyData(ctx context.Context, sessionId string) (*integrs
 	return nil, nil
 }
 
-func (s *Service) GetDaylyUserStats(ctx context.Context, sessionId string, id int64, date time.Time) ([]*resp.Activity, error) {
+func (s *Service) GetDaylyUserStats(ctx context.Context, sessionId string, id int64, date time.Time) ([]*resp.Action, error) {
 	op := "internal/services/persons.Service.GetDaylyUserStats"
 	logger := s.logger.With(slog.String("op", op))
 
@@ -367,67 +367,51 @@ func (s *Service) GetDaylyUserStats(ctx context.Context, sessionId string, id in
 		return nil, err
 	}
 
-	var stats sync.WaitGroup
-	chanErr := make(chan error)
+	beginTime := time.Date(date.Year(), date.Month(), date.Day(), 6, 0, 0, 0, date.Location())
+	endTime := time.Date(date.Year(), date.Month(), date.Day(), 23, 0, 0, 0, date.Location())
 
-	response := make([]*resp.Activity, 17)
-	for i := 0; i < 17; i++ {
-		stats.Add(1)
-		hour := i
-		go func() {
-			defer stats.Done()
-
-			beginTime := time.Date(date.Year(), date.Month(), date.Day(), -(1 + hour), 0, 0, 0, date.Location())
-			endTime := time.Date(date.Year(), date.Month(), date.Day(), -(2 + hour), 0, 0, 0, date.Location())
-
-			filter := integrserv.EventFilter{
-				XMLName: xml.Name{
-					Local: "GetEvents",
+	filter := integrserv.EventFilter{
+		XMLName: xml.Name{
+			Local: "GetEvents",
+		},
+		BeginTime: beginTime.Local(),
+		EndTime:   endTime.Local(),
+		Persons: integrserv.Persons{
+			PersonData: []*integrserv.PersonData{
+				{
+					Id: id,
 				},
-				BeginTime: beginTime,
-				EndTime:   endTime,
-				Persons: integrserv.Persons{
-					PersonData: []*integrserv.PersonData{
-						{
-							Id: id,
-						},
-					},
-				},
-			}
-
-			eventsComing, err := s.eventsService.GetEvents(ctx, &filter, 0, 0)
-			if err != nil {
-				chanErr <- err
-				return
-			}
-
-			var countComing int
-			var countLeaving int
-			for _, e := range eventsComing {
-				if e.PassMode == 1 {
-					countComing++
-				} else if e.PassMode == 2 {
-					countLeaving++
-				}
-			}
-
-			response[hour] = &resp.Activity{
-				Time:    endTime,
-				Coming:  countComing,
-				Leaving: countLeaving,
-			}
-		}()
+			},
+		},
+	}
+	eventsComing, err := s.eventsService.GetEvents(ctx, &filter, 0, 0)
+	if err != nil {
+		logger.Error("occured the error while getting the dayly stats", err)
+		return nil, err
 	}
 
-	go func() {
-		stats.Wait()
-		slices.Reverse(response)
-		close(chanErr)
-	}()
+	events := map[string]bool{}
 
-	if err := <-chanErr; err != nil {
-		logger.Error("Occured the error while requesting for the day stats", err)
-		return nil, err
+	response := []*resp.Action{}
+	for i := 0; i < len(eventsComing); i++ {
+		for _, e := range eventsComing {
+			if _, ok := events[e.EventId]; ok {
+				break
+			}
+
+			if e.PassMode == 1 {
+				response = append(response, &resp.Action{
+					Time:   e.EventDate,
+					Action: "coming",
+				})
+			} else if e.PassMode == 2 {
+				response = append(response, &resp.Action{
+					Time:   e.EventDate,
+					Action: "leaving",
+				})
+			}
+			events[e.EventId] = true
+		}
 	}
 
 	return response, nil
@@ -445,7 +429,7 @@ func (s *Service) GetMonthlyUserStats(ctx context.Context, sessionId string, id 
 	var stats sync.WaitGroup
 	chanErr := make(chan error)
 
-	count := time.Date(month.Year(), month.Month(), 0, 0, 0, 0, 0, time.UTC).Day()
+	count := time.Date(month.Year(), month.Month()+1, 0, 0, 0, 0, 0, time.UTC).Day()
 	response := make([]*resp.Activity, count)
 	for i := 0; i < count; i++ {
 		stats.Add(1)
@@ -453,8 +437,8 @@ func (s *Service) GetMonthlyUserStats(ctx context.Context, sessionId string, id 
 		go func() {
 			defer stats.Done()
 
-			beginTime := time.Date(month.Year(), month.Month(), -(day + 1), 0, 0, 0, 0, month.Location())
-			endTime := time.Date(month.Year(), month.Month(), -(day + 1), 24, 0, 0, 0, month.Location())
+			beginTime := time.Date(month.Year(), month.Month()+1, -day, 0, 0, 0, 0, month.Location())
+			endTime := time.Date(month.Year(), month.Month()+1, -day, 24, 0, 0, 0, month.Location())
 
 			filter := integrserv.EventFilter{
 				XMLName: xml.Name{
@@ -488,7 +472,7 @@ func (s *Service) GetMonthlyUserStats(ctx context.Context, sessionId string, id 
 			}
 
 			response[day] = &resp.Activity{
-				Time:    endTime,
+				Time:    endTime.Truncate(24 * time.Hour),
 				Coming:  countComing,
 				Leaving: countLeaving,
 			}

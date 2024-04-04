@@ -27,7 +27,7 @@ type PersonsService interface {
 	UpdatePerson(ctx context.Context, sessionId string, data integrserv.PersonData) (*integrserv.PersonData, error)
 	DeletePerson(ctx context.Context, sessionId string, data integrserv.PersonData) (*integrserv.PersonData, error)
 	GetDepartments(ctx context.Context, sessionId string) ([]*integrserv.Department, error)
-	GetDaylyUserStats(ctx context.Context, sessionId string, id int64, date time.Time) ([]*resp.Activity, error)
+	GetDaylyUserStats(ctx context.Context, sessionId string, id int64, date time.Time) ([]*resp.Action, error)
 	GetMonthlyUserStats(ctx context.Context, sessionId string, id int64, monthTime time.Time) ([]*resp.Activity, error)
 }
 
@@ -211,7 +211,7 @@ func (pc *PersonsController) GetDaylyUserStats() fiber.Handler {
 			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат id пользователя")))
 		}
 
-		layout := "2006-01-02T15:04:05"
+		layout := "2006-01-02T15:04:05-07:00"
 		date, err := time.Parse(layout, c.Params("date", time.Now().Format(layout)))
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)
@@ -240,7 +240,7 @@ func (pc *PersonsController) GetMonthlyUserStats() fiber.Handler {
 			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат id пользователя")))
 		}
 
-		layout := "2006-01-02T15:04:05"
+		layout := "2006-01-02T15:04:05-07:00"
 		monthTime, err := time.Parse(layout, c.Params("date", time.Now().Format(layout)))
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)

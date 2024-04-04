@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/Izumra/SKUD_OKEI/internal/http/controllers"
+	"github.com/Izumra/SKUD_OKEI/internal/http/controllers/ws"
 	"github.com/Izumra/SKUD_OKEI/internal/services/auth"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -29,4 +30,7 @@ func RegistrHandlers(
 
 	cardRouter := api.Group("/card")
 	controllers.RegistrCardAPI(cardRouter, cardService)
+
+	webSocketRouter := api.Group("/ws")
+	ws.RegistrWSAPI(webSocketRouter, eventsService, sessionStorage)
 }
