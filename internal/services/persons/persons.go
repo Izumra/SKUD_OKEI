@@ -348,16 +348,6 @@ func (s *Service) GetDepartments(
 	return departments, nil
 }
 
-func (s *Service) BindKey(ctx context.Context, sessionId string) (*integrserv.KeyData, error) {
-	return nil, nil
-}
-func (s *Service) GetKeyData(ctx context.Context, sessionId string) (*integrserv.KeyData, error) {
-	return nil, nil
-}
-func (s *Service) UpdataKeyData(ctx context.Context, sessionId string) (*integrserv.KeyData, error) {
-	return nil, nil
-}
-
 func (s *Service) GetDaylyUserStats(ctx context.Context, sessionId string, id int64, date time.Time) ([]*resp.Action, error) {
 	op := "internal/services/persons.Service.GetDaylyUserStats"
 	logger := s.logger.With(slog.String("op", op))

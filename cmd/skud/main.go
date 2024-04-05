@@ -31,8 +31,8 @@ func main() {
 	sessStore := embedded.NewSessStore()
 
 	authService := auth.NewService(logger, sessStore, db, db)
-	cardService := key.NewService(logger, sessStore, cfg.Server.IntegerServAddr)
 	eventsService := events.NewService(logger, sessStore, cfg.Server.IntegerServAddr)
+	cardService := key.NewService(logger, sessStore, eventsService, cfg.Server.IntegerServAddr)
 	personsService := persons.NewService(logger, eventsService, sessStore, cfg.Server.IntegerServAddr)
 
 	services := app.Services{

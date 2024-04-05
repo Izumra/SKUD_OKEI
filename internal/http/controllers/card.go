@@ -16,6 +16,7 @@ type CardService interface {
 	GetKeyData(ctx context.Context, sessionId string, cardNo string) (*integrserv.KeyData, error)
 	UpdateKeyData(ctx context.Context, sessionId string, keyData *integrserv.KeyData) (*integrserv.KeyData, error)
 	AddKey(ctx context.Context, sessionId string, keyData *integrserv.KeyData) (*integrserv.KeyData, error)
+	ReadKeyCode(ctx context.Context, sessionId string, idReader int) (string, error)
 }
 
 type CardController struct {
@@ -27,10 +28,12 @@ func RegistrCardAPI(router fiber.Router, cs CardService) {
 		service: cs,
 	}
 
-	router.Get("/:codeType/:offset/:count", ac.GetKeys())
-	router.Get("/byCardNumber/:cardNo", ac.GetKeyData())
+	router.Get("/by_card_number/:card_no", ac.GetKeyData())
 	router.Put("/", ac.UpdateKeyData())
 	router.Post("/", ac.AddKey())
+	router.Get("/read_card_number/:id_reader", ac.ReadCardNumber())
+	router.Get("/:offset/:count", ac.GetKeys())
+
 }
 
 func (cc *CardController) GetKeys() fiber.Handler {
@@ -66,7 +69,7 @@ func (cc *CardController) GetKeyData() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		session := c.Get("Authorization")
 
-		cardNumberParam := c.Params("cardNo")
+		cardNumberParam := c.Params("card_no")
 
 		if cardNumberParam == "" {
 			c.Status(fiber.StatusBadRequest)
@@ -83,7 +86,29 @@ func (cc *CardController) GetKeyData() fiber.Handler {
 	}
 }
 
-func (cc *CardController) UpdateKeyData() fiber.Handler {
+func (cc *CardController) ReadCardNumber() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		session := c.Get("Authorization")
+
+		idReaderParam := c.Params("id_reader", "0")
+
+		idReader, err := strconv.Atoi(idReaderParam)
+		if err != nil {
+			c.Status(fiber.StatusBadRequest)
+			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат идентификатора считывателя")))
+		}
+
+		result, err := cc.service.ReadKeyCode(c.Context(), session, idReader)
+		if err != nil {
+			c.Status(fiber.StatusInternalServerError)
+			return c.JSON(response.BadRes(err))
+		}
+
+		return c.JSON(response.SuccessRes(result))
+	}
+}
+
+func (cc *CardController) AddKey() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		session := c.Get("Authorization")
 
@@ -104,7 +129,7 @@ func (cc *CardController) UpdateKeyData() fiber.Handler {
 	}
 }
 
-func (cc *CardController) AddKey() fiber.Handler {
+func (cc *CardController) UpdateKeyData() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		session := c.Get("Authorization")
 

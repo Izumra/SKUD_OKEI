@@ -99,7 +99,7 @@ func (mc *WSController) Monitor() fiber.Handler {
 					closedHandlerSetted = true
 				}
 
-				time.Sleep(500 * time.Millisecond)
+				time.Sleep(2 * time.Second)
 
 				filter := integrserv.EventFilter{
 					XMLName: xml.Name{
@@ -117,6 +117,8 @@ func (mc *WSController) Monitor() fiber.Handler {
 				}
 
 				if events != nil {
+					eventsCount := len(stats.Events)
+
 					if len(recentlyRecords) == 0 {
 						for i := range events {
 							recentlyRecords[events[i].EventId] = true
@@ -154,14 +156,13 @@ func (mc *WSController) Monitor() fiber.Handler {
 						}
 					}
 
-					lastRecord := events[len(events)-1]
-					lastUpdate = lastRecord.EventDate
-
-					err = c.Conn.WriteJSON(response.SuccessRes(stats.Events))
-					if err != nil {
-						if websocket.IsUnexpectedCloseError(err) || websocket.IsCloseError(err) {
-							cancel()
-							break
+					if eventsCount < len(stats.Events) {
+						err = c.Conn.WriteJSON(response.SuccessRes(stats))
+						if err != nil {
+							if websocket.IsUnexpectedCloseError(err) || websocket.IsCloseError(err) {
+								cancel()
+								break
+							}
 						}
 					}
 				}

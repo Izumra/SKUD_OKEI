@@ -6,7 +6,6 @@ import (
 	"encoding/xml"
 	"errors"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/Izumra/SKUD_OKEI/domain/dto/integrserv"
@@ -39,7 +38,7 @@ func ReqToXMLIntegerServ(ctx context.Context, method string, url string, headers
 	//decoder := xml.NewDecoder(data)
 	err = xml.Unmarshal(data, expBody)
 	if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
-		log.Println(string(data))
+		//log.Println(string(data))
 		return err
 	}
 
