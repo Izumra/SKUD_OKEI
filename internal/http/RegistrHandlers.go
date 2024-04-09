@@ -16,7 +16,10 @@ func RegistrHandlers(
 	eventsService controllers.EventsService,
 	cardService controllers.CardService,
 ) {
-	app.Use(cors.New())
+	app.Use(cors.New(cors.Config{
+		AllowCredentials: true,
+		AllowOriginsFunc: func(origin string) bool { return true },
+	}))
 
 	api := app.Group("/api")
 

@@ -19,8 +19,8 @@ var (
 )
 
 type WSService interface {
-	GetEvents(ctx context.Context, eventsFilter *integrserv.EventFilter, offset int64, count int64) ([]*integrserv.Event, error)
-	GetEventsCount(ctx context.Context, eventsFilter *integrserv.EventFilter) (int64, error)
+	GetEvents(ctx context.Context, eventsFilter *integrserv.EventFilter) ([]*integrserv.Event, error)
+	GetEventsCount(ctx context.Context, eventsFilter *integrserv.EventCountFilter) (int64, error)
 }
 
 type WSController struct {
@@ -40,13 +40,10 @@ func RegistrWSAPI(router fiber.Router, ws WSService, sessStorage auth.SessionSto
 
 func (mc *WSController) CheckRegisteredUpgrade() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		sessionId := c.Get("Authorization")
-		if websocket.IsWebSocketUpgrade(c) && sessionId != "" {
-			c.Locals("sessionID", sessionId)
+		//sessionId := c.Get("Authorization")
+		if websocket.IsWebSocketUpgrade(c) {
+			//c.Locals("sessionID", sessionId)
 			return c.Next()
-		} else if sessionId == "" {
-			c.Status(fiber.ErrForbidden.Code)
-			return c.JSON(response.BadRes(ErrSessionRequired))
 		}
 		return fiber.ErrUpgradeRequired
 	}
@@ -58,27 +55,28 @@ func (mc *WSController) Monitor() fiber.Handler {
 		ctx, cancel := context.WithCancel(context.TODO())
 		defer cancel()
 
-		session := c.Locals("sessionID").(string)
+		// session := c.Locals("sessionID").(string)
 
-		_, err := mc.sessStorage.GetByID(ctx, session)
-		if err != nil {
-			c.WriteJSON(response.BadRes(err))
-			return
-		}
+		// _, err := mc.sessStorage.GetByID(ctx, session)
+		// if err != nil {
+		// 	c.WriteJSON(response.BadRes(err))
+		// 	return
+		// }
+
 		var lastUpdate time.Time
 
 		now := time.Now()
-		lastUpdate = time.Date(now.Year(), now.Month(), now.Day(), 6, 0, 0, 0, now.Location())
+		lastUpdate = time.Date(now.Year(), now.Month(), now.Day(), now.Hour()-1, 0, 0, 0, now.Location())
 
 		recentlyRecords := map[string]bool{}
 
 		type Stats struct {
 			CountInside  int
 			CountOutside int
-			CountAnomaly int
 			Events       []*integrserv.Event
 		}
 
+		var evnts []*integrserv.Event
 		stats := Stats{}
 
 		var closedHandlerSetted bool
@@ -99,7 +97,9 @@ func (mc *WSController) Monitor() fiber.Handler {
 					closedHandlerSetted = true
 				}
 
-				time.Sleep(2 * time.Second)
+				if len(evnts) != 0 {
+					time.Sleep(1 * time.Second)
+				}
 
 				filter := integrserv.EventFilter{
 					XMLName: xml.Name{
@@ -107,9 +107,11 @@ func (mc *WSController) Monitor() fiber.Handler {
 					},
 					BeginTime: lastUpdate,
 					EndTime:   time.Now(),
+					Offset:    0,
+					Count:     100,
 				}
 
-				events, err := mc.service.GetEvents(ctx, &filter, 0, 0)
+				events, err := mc.service.GetEvents(ctx, &filter)
 				if err != nil {
 					c.WriteJSON(response.BadRes(err))
 					cancel()
@@ -117,8 +119,9 @@ func (mc *WSController) Monitor() fiber.Handler {
 				}
 
 				if events != nil {
-					eventsCount := len(stats.Events)
+					eventsCount := len(evnts)
 
+					var countNewRecords int
 					if len(recentlyRecords) == 0 {
 						for i := range events {
 							recentlyRecords[events[i].EventId] = true
@@ -128,35 +131,27 @@ func (mc *WSController) Monitor() fiber.Handler {
 								stats.CountOutside++
 							}
 						}
-						stats.Events = events
+						evnts = events
+						countNewRecords = len(events)
 					} else {
 						for i := range events {
 							if _, ok := recentlyRecords[events[i].EventId]; !ok {
 								recentlyRecords[events[i].EventId] = true
-								stats.Events = append(stats.Events, events[i])
+								evnts = append(evnts, events[i])
+								countNewRecords++
 
 								if events[i].PassMode == 1 {
 									stats.CountInside++
-
-									if stats.CountOutside > 0 {
-										stats.CountOutside--
-									} else {
-										stats.CountAnomaly++
-									}
 								} else if events[i].PassMode == 2 {
 									stats.CountOutside++
-
-									if stats.CountInside > 0 {
-										stats.CountInside--
-									} else {
-										stats.CountAnomaly++
-									}
 								}
 							}
 						}
 					}
 
-					if eventsCount < len(stats.Events) {
+					stats.Events = evnts[len(evnts)-countNewRecords:]
+					lastUpdate = evnts[len(evnts)-1].EventDate
+					if eventsCount < len(evnts) {
 						err = c.Conn.WriteJSON(response.SuccessRes(stats))
 						if err != nil {
 							if websocket.IsUnexpectedCloseError(err) || websocket.IsCloseError(err) {

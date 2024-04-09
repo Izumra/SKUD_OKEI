@@ -28,7 +28,7 @@ func NewService(
 	}
 }
 
-func (s *Service) GetEvents(ctx context.Context, eventsFilter *integrserv.EventFilter, offset int64, count int64) ([]*integrserv.Event, error) {
+func (s *Service) GetEvents(ctx context.Context, eventsFilter *integrserv.EventFilter) ([]*integrserv.Event, error) {
 	op := "internal/services/events.Service.GetEvents"
 	logger := s.logger.With(slog.String("op", op))
 
@@ -48,7 +48,7 @@ func (s *Service) GetEvents(ctx context.Context, eventsFilter *integrserv.EventF
 	return expBody, nil
 }
 
-func (s *Service) GetEventsCount(ctx context.Context, eventsFilter *integrserv.EventFilter) (int64, error) {
+func (s *Service) GetEventsCount(ctx context.Context, eventsFilter *integrserv.EventCountFilter) (int64, error) {
 	op := "internal/services/events.Service.GetEventsCount"
 	logger := s.logger.With(slog.String("op", op))
 

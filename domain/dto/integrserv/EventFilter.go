@@ -12,6 +12,16 @@ type EventFilter struct {
 	EventTypes  EventTypes
 	Persons     Persons
 	EntryPoints EntryPoints
+	Offset      int64
+	Count       int64
+}
+type EventCountFilter struct {
+	XMLName     xml.Name
+	BeginTime   time.Time
+	EndTime     time.Time
+	EventTypes  EventTypes
+	Persons     Persons
+	EntryPoints EntryPoints
 }
 
 type EventTypes struct {

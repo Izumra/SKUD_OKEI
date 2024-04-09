@@ -8,8 +8,14 @@ import (
 )
 
 type Config struct {
-	Server Server   `yaml:"server"`
-	Db     Database `yaml:"db"`
+	IntegerServer IntegerServer `yaml:"integer_server"`
+	Server        Server        `yaml:"server"`
+	Db            Database      `yaml:"db"`
+}
+
+type IntegerServer struct {
+	Addr         string `yaml:"address"`
+	TitleService string `yaml:"title_service"`
 }
 
 type Server struct {

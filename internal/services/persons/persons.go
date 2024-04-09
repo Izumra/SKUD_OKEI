@@ -374,7 +374,7 @@ func (s *Service) GetDaylyUserStats(ctx context.Context, sessionId string, id in
 			},
 		},
 	}
-	eventsComing, err := s.eventsService.GetEvents(ctx, &filter, 0, 0)
+	eventsComing, err := s.eventsService.GetEvents(ctx, &filter)
 	if err != nil {
 		logger.Error("occured the error while getting the dayly stats", err)
 		return nil, err
@@ -445,7 +445,7 @@ func (s *Service) GetMonthlyUserStats(ctx context.Context, sessionId string, id 
 				},
 			}
 
-			eventsComing, err := s.eventsService.GetEvents(ctx, &filter, 0, 0)
+			eventsComing, err := s.eventsService.GetEvents(ctx, &filter)
 			if err != nil {
 				chanErr <- err
 				return

@@ -16,8 +16,8 @@ import (
 )
 
 type EventsService interface {
-	GetEvents(ctx context.Context, eventsFilter *integrserv.EventFilter, offset int64, count int64) ([]*integrserv.Event, error)
-	GetEventsCount(ctx context.Context, eventsFilter *integrserv.EventFilter) (int64, error)
+	GetEvents(ctx context.Context, eventsFilter *integrserv.EventFilter) ([]*integrserv.Event, error)
+	GetEventsCount(ctx context.Context, eventsFilter *integrserv.EventCountFilter) (int64, error)
 }
 
 type EventsController struct {
@@ -64,7 +64,7 @@ func (ec *EventsController) GetEventsCount() fiber.Handler {
 			return c.JSON(response.BadRes(ErrBodyParse))
 		}
 
-		filter := integrserv.EventFilter{
+		filter := integrserv.EventCountFilter{
 			XMLName: xml.Name{
 				Local: "GetEventsCount",
 			},
@@ -117,14 +117,14 @@ func (ec *EventsController) GetEvents() fiber.Handler {
 		}
 
 		offsetParam := c.Params("offset", "0")
-		offset, err := strconv.ParseInt(offsetParam, 10, 0)
+		_, err = strconv.ParseInt(offsetParam, 10, 0)
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)
 			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат шага смещения")))
 		}
 
 		countParam := c.Params("count", "0")
-		count, err := strconv.ParseInt(countParam, 10, 0)
+		_, err = strconv.ParseInt(countParam, 10, 0)
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)
 			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат количества событий")))
@@ -144,7 +144,7 @@ func (ec *EventsController) GetEvents() fiber.Handler {
 			},
 		}
 
-		result, err := ec.service.GetEvents(c.Context(), &filter, offset, count)
+		result, err := ec.service.GetEvents(c.Context(), &filter)
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
 			return c.JSON(response.BadRes(err))

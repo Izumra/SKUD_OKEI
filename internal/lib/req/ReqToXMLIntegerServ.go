@@ -7,8 +7,13 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/Izumra/SKUD_OKEI/domain/dto/integrserv"
+)
+
+var (
+	ErrOrionConnect = errors.New("Орион отвалился")
 )
 
 func ReqToXMLIntegerServ(ctx context.Context, method string, url string, headers map[string]string, body []byte, expBody *integrserv.EnvelopeResp) error {
@@ -25,6 +30,9 @@ func ReqToXMLIntegerServ(ctx context.Context, method string, url string, headers
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
+		if strings.HasSuffix(err.Error(), ": EOF") {
+			return ErrOrionConnect
+		}
 		return err
 	}
 	defer resp.Body.Close()

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -53,7 +54,8 @@ func RegistrPersonsAPI(router fiber.Router, ps PersonsService) {
 
 func (pc *PersonsController) GetPersons() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		session := c.Get("Authorization")
+		session := c.Cookies("session", "")
+		log.Println(session)
 
 		offsetParam := c.Params("offset", "0")
 		countParam := c.Params("count", "0")
@@ -88,7 +90,7 @@ func (pc *PersonsController) GetPersons() fiber.Handler {
 
 func (pc *PersonsController) GetPersonsCount() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		session := c.Get("Authorization")
+		session := c.Cookies("session", "")
 
 		result, err := pc.service.GetPersonsCount(c.Context(), session)
 		if err != nil {
@@ -102,7 +104,7 @@ func (pc *PersonsController) GetPersonsCount() fiber.Handler {
 
 func (pc *PersonsController) GetPersonById() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		session := c.Get("Authorization")
+		session := c.Cookies("session", "")
 
 		idParam := c.Params("id", "0")
 
@@ -124,7 +126,7 @@ func (pc *PersonsController) GetPersonById() fiber.Handler {
 
 func (pc *PersonsController) AddPerson() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		session := c.Get("Authorization")
+		session := c.Cookies("session", "")
 
 		var data integrserv.PersonData
 		err := json.Unmarshal(c.Body(), &data)
@@ -145,7 +147,7 @@ func (pc *PersonsController) AddPerson() fiber.Handler {
 
 func (pc *PersonsController) UpdatePerson() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		session := c.Get("Authorization")
+		session := c.Cookies("session", "")
 
 		var data integrserv.PersonData
 		err := json.Unmarshal(c.Body(), &data)
@@ -166,7 +168,7 @@ func (pc *PersonsController) UpdatePerson() fiber.Handler {
 
 func (pc *PersonsController) DeletePerson() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		session := c.Get("Authorization")
+		session := c.Cookies("session", "")
 
 		var data integrserv.PersonData
 		err := json.Unmarshal(c.Body(), &data)
@@ -187,7 +189,10 @@ func (pc *PersonsController) DeletePerson() fiber.Handler {
 
 func (pc *PersonsController) GetDepartments() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		session := c.Get("Authorization")
+		c.Set("Access-Control-Allow-Credentials", "true")
+
+		session := c.Cookies("session", "")
+		log.Println(session)
 
 		result, err := pc.service.GetDepartments(c.Context(), session)
 		if err != nil {
@@ -201,7 +206,7 @@ func (pc *PersonsController) GetDepartments() fiber.Handler {
 
 func (pc *PersonsController) GetDaylyUserStats() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		session := c.Get("Authorization")
+		session := c.Cookies("session", "")
 
 		idParam := c.Params("id", "0")
 
@@ -230,7 +235,7 @@ func (pc *PersonsController) GetDaylyUserStats() fiber.Handler {
 
 func (pc *PersonsController) GetMonthlyUserStats() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		session := c.Get("Authorization")
+		session := c.Cookies("session", "")
 
 		idParam := c.Params("id", "0")
 

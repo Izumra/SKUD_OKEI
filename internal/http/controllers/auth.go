@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/Izumra/SKUD_OKEI/domain/dto/reqs"
 	"github.com/Izumra/SKUD_OKEI/domain/dto/resp"
@@ -39,7 +40,7 @@ func RegistrAuthAPI(router fiber.Router, as AuthService, ss auth.SessionStorage)
 func (ac *AuthController) Login() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		sessionId := c.Get("Authorization")
+		sessionId := c.Cookies("session", "")
 		if sessionId != "" {
 			session, err := ac.sessionStorage.GetByID(c.Context(), sessionId)
 			if err != nil {
@@ -47,6 +48,7 @@ func (ac *AuthController) Login() fiber.Handler {
 				return c.JSON(response.BadRes(ErrBodyParse))
 			}
 
+			c.Set("Access-Control-Allow-Credentials", "true")
 			return c.JSON(response.SuccessRes(resp.SuccessAuth{
 				Username:  session.Username,
 				SessionId: sessionId,
@@ -66,6 +68,15 @@ func (ac *AuthController) Login() fiber.Handler {
 			return c.JSON(response.BadRes(err))
 		}
 
+		c.Cookie(&fiber.Cookie{
+			Name:     "session",
+			Value:    result.SessionId,
+			MaxAge:   48 * 60 * 60 * 1000,
+			SameSite: "Strict",
+			Expires:  time.Now().Add(48 * time.Hour),
+		})
+
+		c.Set("Access-Control-Allow-Credentials", "true")
 		return c.JSON(response.SuccessRes(result))
 	}
 }
@@ -85,6 +96,14 @@ func (ac *AuthController) Registrate() fiber.Handler {
 			return c.JSON(response.BadRes(err))
 		}
 
+		c.Cookie(&fiber.Cookie{
+			Name:     "session",
+			Value:    result.SessionId,
+			MaxAge:   48 * 60 * 60 * 1000,
+			SameSite: "Strict",
+			Expires:  time.Now().Add(48 * time.Hour),
+		})
+		c.Set("Access-Control-Allow-Credentials", "true")
 		return c.JSON(response.SuccessRes(result))
 	}
 }

@@ -241,7 +241,7 @@ func (s *Service) ReadKeyCode(ctx context.Context, sessionId string, idReader in
 		EndTime:   timeSurvey,
 	}
 
-	events, err := s.eventService.GetEvents(ctx, &filter, 0, 0)
+	events, err := s.eventService.GetEvents(ctx, &filter)
 	if err != nil {
 		logger.Info("Occured the error while reading the card", err)
 		return "", err
