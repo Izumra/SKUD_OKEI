@@ -48,7 +48,6 @@ func (ac *AuthController) Login() fiber.Handler {
 				return c.JSON(response.BadRes(ErrBodyParse))
 			}
 
-			c.Set("Access-Control-Allow-Credentials", "true")
 			return c.JSON(response.SuccessRes(resp.SuccessAuth{
 				Username:  session.Username,
 				SessionId: sessionId,
@@ -76,7 +75,6 @@ func (ac *AuthController) Login() fiber.Handler {
 			Expires:  time.Now().Add(48 * time.Hour),
 		})
 
-		c.Set("Access-Control-Allow-Credentials", "true")
 		return c.JSON(response.SuccessRes(result))
 	}
 }
@@ -103,7 +101,6 @@ func (ac *AuthController) Registrate() fiber.Handler {
 			SameSite: "Strict",
 			Expires:  time.Now().Add(48 * time.Hour),
 		})
-		c.Set("Access-Control-Allow-Credentials", "true")
 		return c.JSON(response.SuccessRes(result))
 	}
 }
