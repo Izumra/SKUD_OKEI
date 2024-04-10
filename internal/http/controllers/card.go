@@ -137,7 +137,7 @@ func (cc *CardController) UpdateKeyData() fiber.Handler {
 
 		if err := json.Unmarshal(c.Body(), &body); err != nil {
 			c.Status(fiber.StatusBadRequest)
-			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат данных изменяемого ключа")))
+			return c.JSON(response.BadRes(fmt.Errorf("Неверный формат данных изменяемого ключа")))
 		}
 
 		result, err := cc.service.UpdateKeyData(c.Context(), session, &body)

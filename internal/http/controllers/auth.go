@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	ErrSessionNotFound = errors.New(" Сессия пользователя не была найдена")
+	ErrSessionNotFound = errors.New("Сессия пользователя не была найдена")
 )
 
 type AuthService interface {

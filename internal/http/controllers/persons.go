@@ -61,19 +61,19 @@ func (pc *PersonsController) GetPersons() fiber.Handler {
 		offset, err := strconv.ParseInt(offsetParam, 10, 0)
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)
-			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат параметра смещения")))
+			return c.JSON(response.BadRes(fmt.Errorf("Неверный формат параметра смещения")))
 		}
 
 		count, err := strconv.ParseInt(countParam, 10, 0)
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)
-			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат параметра количества пользователей")))
+			return c.JSON(response.BadRes(fmt.Errorf("Неверный формат параметра количества пользователей")))
 		}
 
 		var body []string
 		if err := json.Unmarshal(c.Body(), &body); err != nil {
 			c.Status(fiber.StatusBadRequest)
-			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат фильтров для запроса")))
+			return c.JSON(response.BadRes(fmt.Errorf("Неверный формат фильтров для запроса")))
 		}
 
 		result, err := pc.service.GetPersons(c.Context(), session, offset, count, body)
@@ -109,7 +109,7 @@ func (pc *PersonsController) GetPersonById() fiber.Handler {
 		id, err := strconv.ParseInt(idParam, 10, 0)
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)
-			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат id пользователя")))
+			return c.JSON(response.BadRes(fmt.Errorf("Неверный формат id пользователя")))
 		}
 
 		result, err := pc.service.GetPersonById(c.Context(), session, id)
@@ -209,7 +209,7 @@ func (pc *PersonsController) GetDaylyUserStats() fiber.Handler {
 		id, err := strconv.ParseInt(idParam, 10, 0)
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)
-			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат id пользователя")))
+			return c.JSON(response.BadRes(fmt.Errorf("Неверный формат id пользователя")))
 		}
 
 		layout := "2006-01-02T15:04:05-07:00"
@@ -238,7 +238,7 @@ func (pc *PersonsController) GetMonthlyUserStats() fiber.Handler {
 		id, err := strconv.ParseInt(idParam, 10, 0)
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)
-			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат id пользователя")))
+			return c.JSON(response.BadRes(fmt.Errorf("Неверный формат id пользователя")))
 		}
 
 		layout := "2006-01-02T15:04:05-07:00"

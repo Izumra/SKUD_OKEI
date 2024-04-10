@@ -56,18 +56,18 @@ func (mc *WSController) Monitor() fiber.Handler {
 		ctx, cancel := context.WithCancel(context.TODO())
 		defer cancel()
 
-		session := c.Locals("sessionID").(string)
+		// session := c.Locals("sessionID").(string)
 
-		_, err := mc.sessStorage.GetByID(ctx, session)
-		if err != nil {
-			c.WriteJSON(response.BadRes(err))
-			return
-		}
+		// _, err := mc.sessStorage.GetByID(ctx, session)
+		// if err != nil {
+		// 	c.WriteJSON(response.BadRes(err))
+		// 	return
+		// }
 
 		var lastUpdate time.Time
 
 		now := time.Now()
-		lastUpdate = time.Date(now.Year(), now.Month(), now.Day(), now.Hour()-1, 0, 0, 0, now.Location())
+		lastUpdate = time.Date(now.Year(), now.Month(), now.Day(), 6, 0, 0, 0, now.Location())
 
 		recentlyRecords := map[string]bool{}
 
@@ -107,7 +107,7 @@ func (mc *WSController) Monitor() fiber.Handler {
 						Local: "GetEvents",
 					},
 					BeginTime: lastUpdate,
-					EndTime:   time.Now(),
+					EndTime:   lastUpdate.Add(time.Hour),
 					Offset:    0,
 					Count:     100,
 				}
@@ -119,7 +119,7 @@ func (mc *WSController) Monitor() fiber.Handler {
 					return
 				}
 
-				if events != nil {
+				if len(events) != 0 {
 					eventsCount := len(evnts)
 
 					var countNewRecords int
@@ -161,6 +161,8 @@ func (mc *WSController) Monitor() fiber.Handler {
 							}
 						}
 					}
+				} else {
+					lastUpdate = lastUpdate.Add(time.Hour)
 				}
 			}
 		}
