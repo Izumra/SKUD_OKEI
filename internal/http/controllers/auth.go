@@ -34,7 +34,16 @@ func RegistrAuthAPI(router fiber.Router, as AuthService, ss auth.SessionStorage)
 	}
 
 	router.Post("/login", ac.Login())
+	router.Post("/logout", ac.Logout())
 	router.Post("/registrate", ac.Registrate())
+}
+
+func (ac *AuthController) Logout() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		c.ClearCookie("session")
+		return c.JSON(response.SuccessRes("Пользователь вышел"))
+	}
 }
 
 func (ac *AuthController) Login() fiber.Handler {
@@ -44,6 +53,7 @@ func (ac *AuthController) Login() fiber.Handler {
 		if sessionId != "" {
 			session, err := ac.sessionStorage.GetByID(c.Context(), sessionId)
 			if err != nil {
+				c.ClearCookie("session")
 				c.Status(fiber.StatusNotFound)
 				return c.JSON(response.BadRes(ErrBodyParse))
 			}

@@ -74,10 +74,13 @@ func (mc *WSController) Monitor() fiber.Handler {
 		type Stats struct {
 			CountInside  int
 			CountOutside int
+			AnomalyIn    int
+			AnomalyOut   int
 			Events       []*integrserv.Event
 		}
 
 		var evnts []*integrserv.Event
+		users := make(map[int64]*integrserv.Event)
 		stats := Stats{}
 
 		var closedHandlerSetted bool
@@ -131,6 +134,16 @@ func (mc *WSController) Monitor() fiber.Handler {
 							} else if events[i].PassMode == 2 {
 								stats.CountOutside++
 							}
+
+							//Anomaly logic
+							if lastUsrEvent, ok := users[events[i].PersonId]; ok {
+								if lastUsrEvent.PassMode == 1 && events[i].PassMode == 1 {
+									stats.AnomalyIn++
+								} else if lastUsrEvent.PassMode == 2 && events[i].PassMode == 2 {
+									stats.AnomalyOut++
+								}
+							}
+							users[events[i].PersonId] = events[i]
 						}
 						evnts = events
 						countNewRecords = len(events)
@@ -140,6 +153,16 @@ func (mc *WSController) Monitor() fiber.Handler {
 								recentlyRecords[events[i].EventId] = true
 								evnts = append(evnts, events[i])
 								countNewRecords++
+
+								//Anomaly logic
+								if lastUsrEvent, ok := users[events[i].PersonId]; ok {
+									if lastUsrEvent.PassMode == 1 && events[i].PassMode == 1 {
+										stats.AnomalyIn++
+									} else if lastUsrEvent.PassMode == 2 && events[i].PassMode == 2 {
+										stats.AnomalyOut++
+									}
+								}
+								users[events[i].PersonId] = events[i]
 
 								if events[i].PassMode == 1 {
 									stats.CountInside++
