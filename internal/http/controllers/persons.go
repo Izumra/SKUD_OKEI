@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
@@ -55,7 +54,6 @@ func RegistrPersonsAPI(router fiber.Router, ps PersonsService) {
 func (pc *PersonsController) GetPersons() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		session := c.Cookies("session", "")
-		log.Println(session)
 
 		offsetParam := c.Params("offset", "0")
 		countParam := c.Params("count", "0")
@@ -189,10 +187,8 @@ func (pc *PersonsController) DeletePerson() fiber.Handler {
 
 func (pc *PersonsController) GetDepartments() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		c.Set("Access-Control-Allow-Credentials", "true")
 
 		session := c.Cookies("session", "")
-		log.Println(session)
 
 		result, err := pc.service.GetDepartments(c.Context(), session)
 		if err != nil {

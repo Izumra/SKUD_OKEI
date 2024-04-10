@@ -38,7 +38,7 @@ func RegistrCardAPI(router fiber.Router, cs CardService) {
 
 func (cc *CardController) GetKeys() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		session := c.Get("Authorization")
+		session := c.Cookies("session", "")
 
 		offsetParam := c.Params("offset", "0")
 		countParam := c.Params("count", "0")
@@ -67,7 +67,7 @@ func (cc *CardController) GetKeys() fiber.Handler {
 
 func (cc *CardController) GetKeyData() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		session := c.Get("Authorization")
+		session := c.Cookies("session", "")
 
 		cardNumberParam := c.Params("card_no")
 
@@ -88,7 +88,7 @@ func (cc *CardController) GetKeyData() fiber.Handler {
 
 func (cc *CardController) ReadCardNumber() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		session := c.Get("Authorization")
+		session := c.Cookies("session", "")
 
 		idReaderParam := c.Params("id_reader", "0")
 
@@ -110,7 +110,7 @@ func (cc *CardController) ReadCardNumber() fiber.Handler {
 
 func (cc *CardController) AddKey() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		session := c.Get("Authorization")
+		session := c.Cookies("session", "")
 
 		var body integrserv.KeyData
 
@@ -131,7 +131,7 @@ func (cc *CardController) AddKey() fiber.Handler {
 
 func (cc *CardController) UpdateKeyData() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		session := c.Get("Authorization")
+		session := c.Cookies("session", "")
 
 		var body integrserv.KeyData
 

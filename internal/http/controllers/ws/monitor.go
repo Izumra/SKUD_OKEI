@@ -40,9 +40,10 @@ func RegistrWSAPI(router fiber.Router, ws WSService, sessStorage auth.SessionSto
 
 func (mc *WSController) CheckRegisteredUpgrade() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		//sessionId := c.Get("Authorization")
+		sessionId := c.Cookies("session", "")
+
 		if websocket.IsWebSocketUpgrade(c) {
-			//c.Locals("sessionID", sessionId)
+			c.Locals("sessionID", sessionId)
 			return c.Next()
 		}
 		return fiber.ErrUpgradeRequired
@@ -55,13 +56,13 @@ func (mc *WSController) Monitor() fiber.Handler {
 		ctx, cancel := context.WithCancel(context.TODO())
 		defer cancel()
 
-		// session := c.Locals("sessionID").(string)
+		session := c.Locals("sessionID").(string)
 
-		// _, err := mc.sessStorage.GetByID(ctx, session)
-		// if err != nil {
-		// 	c.WriteJSON(response.BadRes(err))
-		// 	return
-		// }
+		_, err := mc.sessStorage.GetByID(ctx, session)
+		if err != nil {
+			c.WriteJSON(response.BadRes(err))
+			return
+		}
 
 		var lastUpdate time.Time
 

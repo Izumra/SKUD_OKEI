@@ -49,8 +49,7 @@ func (ac *AuthController) Login() fiber.Handler {
 			}
 
 			return c.JSON(response.SuccessRes(resp.SuccessAuth{
-				Username:  session.Username,
-				SessionId: sessionId,
+				Username: session.Username,
 			}))
 		}
 

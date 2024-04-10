@@ -38,7 +38,7 @@ func RegistrEventAPI(router fiber.Router, es EventsService, ss auth.SessionStora
 func (ec *EventsController) GetEventsCount() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		_ = c.Get("Authorization")
+		_ = c.Cookies("session", "")
 
 		reqBody := reqs.ReqEventFilter{}
 
@@ -90,7 +90,7 @@ func (ec *EventsController) GetEventsCount() fiber.Handler {
 func (ec *EventsController) GetEvents() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		_ = c.Get("Authorization")
+		_ = c.Cookies("session", "")
 
 		reqBody := reqs.ReqEventFilter{}
 
