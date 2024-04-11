@@ -73,7 +73,7 @@ func (cc *CardController) GetKeyData() fiber.Handler {
 
 		if cardNumberParam == "" {
 			c.Status(fiber.StatusBadRequest)
-			return c.JSON(response.BadRes(fmt.Errorf(" Номер карты не может быть пустым")))
+			return c.JSON(response.BadRes(fmt.Errorf("Номер карты не может быть пустым")))
 		}
 
 		result, err := cc.service.GetKeyData(c.Context(), session, cardNumberParam)
@@ -116,10 +116,10 @@ func (cc *CardController) AddKey() fiber.Handler {
 
 		if err := json.Unmarshal(c.Body(), &body); err != nil {
 			c.Status(fiber.StatusBadRequest)
-			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат данных добавляемого ключа")))
+			return c.JSON(response.BadRes(fmt.Errorf("Неверный формат данных добавляемого ключа")))
 		}
 
-		result, err := cc.service.UpdateKeyData(c.Context(), session, &body)
+		result, err := cc.service.AddKey(c.Context(), session, &body)
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
 			return c.JSON(response.BadRes(err))

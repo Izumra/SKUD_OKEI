@@ -1,7 +1,5 @@
 package integrserv
 
-import "time"
-
 const (
 	KeyCodeProgrammPass = iota + 1
 	KeyCodePinCode
@@ -18,8 +16,8 @@ type KeyData struct {
 	Code            string
 	PersonId        int64
 	AccessLevelId   int
-	StartDate       time.Time
-	EndDate         time.Time
+	StartDate       string
+	EndDate         string
 	IsBlocked       bool
 	IsStoreInDevice bool
 	IsStoreInS2000  bool

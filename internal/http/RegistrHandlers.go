@@ -21,6 +21,8 @@ func RegistrHandlers(
 		AllowOriginsFunc: func(origin string) bool { return true },
 	}))
 
+	app.Static("/", "dist")
+
 	api := app.Group("/api")
 
 	controllers.RegistrAuthAPI(app, authService, sessionStorage)
@@ -31,7 +33,7 @@ func RegistrHandlers(
 	eventsRouter := api.Group("/events")
 	controllers.RegistrEventAPI(eventsRouter, eventsService, sessionStorage)
 
-	cardRouter := api.Group("/card")
+	cardRouter := api.Group("/cards")
 	controllers.RegistrCardAPI(cardRouter, cardService)
 
 	webSocketRouter := api.Group("/ws")
