@@ -2,8 +2,8 @@ integer_server:
   address: "http://192.168.102.44:8090/soap/IOrionPro"     
   title_service: ""
 server:
-  port: 3001
-  integrserv: "http://192.168.102.44:8090"
+  port: 8082
+  integrserv: "http://192.168.102.69:8090"
 session:
   ttl: 24h
   secret: "7g{Q0z7>)9l@"
