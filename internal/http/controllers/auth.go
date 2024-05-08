@@ -53,9 +53,28 @@ func (ac *AuthController) Login() fiber.Handler {
 		if sessionId != "" {
 			session, err := ac.sessionStorage.GetByID(c.Context(), sessionId)
 			if err != nil {
-				c.ClearCookie("session")
-				c.Status(fiber.StatusNotFound)
-				return c.JSON(response.BadRes(ErrBodyParse))
+				var data reqs.LoginBody
+				err := json.Unmarshal(c.Body(), &data)
+				if err != nil {
+					c.Status(fiber.StatusBadRequest)
+					return c.JSON(response.BadRes(ErrBodyParse))
+				}
+
+				result, err := ac.service.Login(c.Context(), data.Username, data.Password)
+				if err != nil {
+					c.Status(fiber.StatusInternalServerError)
+					return c.JSON(response.BadRes(err))
+				}
+
+				c.Cookie(&fiber.Cookie{
+					Name:     "session",
+					Value:    result.SessionId,
+					MaxAge:   48 * 60 * 60 * 1000,
+					SameSite: "Strict",
+					Expires:  time.Now().Add(48 * time.Hour),
+				})
+
+				return c.JSON(response.SuccessRes(result))
 			}
 
 			return c.JSON(response.SuccessRes(resp.SuccessAuth{

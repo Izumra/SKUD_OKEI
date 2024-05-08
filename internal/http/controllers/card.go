@@ -46,13 +46,13 @@ func (cc *CardController) GetKeys() fiber.Handler {
 		offset, err := strconv.ParseInt(offsetParam, 10, 0)
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)
-			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат параметра смещения")))
+			return c.JSON(response.BadRes(fmt.Errorf("Неверный формат параметра смещения")))
 		}
 
 		count, err := strconv.ParseInt(countParam, 10, 0)
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)
-			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат параметра количества ключей")))
+			return c.JSON(response.BadRes(fmt.Errorf("Неверный формат параметра количества ключей")))
 		}
 
 		result, err := cc.service.GetKeys(c.Context(), session, offset, count)
@@ -95,7 +95,7 @@ func (cc *CardController) ReadCardNumber() fiber.Handler {
 		idReader, err := strconv.Atoi(idReaderParam)
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)
-			return c.JSON(response.BadRes(fmt.Errorf(" Неверный формат идентификатора считывателя")))
+			return c.JSON(response.BadRes(fmt.Errorf("Неверный формат идентификатора считывателя")))
 		}
 
 		result, err := cc.service.ReadKeyCode(c.Context(), session, idReader)

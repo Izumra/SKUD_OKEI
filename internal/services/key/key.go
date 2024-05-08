@@ -23,8 +23,6 @@ var (
 	ErrAccessDenied        = errors.New("вам отказано в доступе")
 )
 
-//TODO: implement the key service
-
 type Service struct {
 	logger         *slog.Logger
 	sessStore      auth.SessionStorage
@@ -226,7 +224,7 @@ func (s *Service) ReadKeyCode(ctx context.Context, sessionId string, idReader in
 	}
 
 	if idReader < 1 || idReader > 5 {
-		return "", fmt.Errorf(" Неверный номер считывателя ")
+		return "", fmt.Errorf("Неверный номер считывателя")
 	}
 
 	selectedReader := readers[idReader-1]
@@ -237,7 +235,7 @@ func (s *Service) ReadKeyCode(ctx context.Context, sessionId string, idReader in
 		XMLName: xml.Name{
 			Local: "GetEvents",
 		},
-		BeginTime: timeSurvey.Truncate(5 * time.Minute),
+		BeginTime: time.Date(timeSurvey.Year(), timeSurvey.Month(), timeSurvey.Day(), timeSurvey.Hour(), timeSurvey.Minute()-5, 0, 0, timeSurvey.Location()),
 		EndTime:   timeSurvey,
 	}
 
@@ -248,7 +246,7 @@ func (s *Service) ReadKeyCode(ctx context.Context, sessionId string, idReader in
 	}
 
 	var keys []string
-	regExp := regexp.MustCompile(`Дверь [0-9]+,  (.{16}) Считыватель`)
+	regExp := regexp.MustCompile(`.,  (.*) Считыватель$`)
 	for i := range events {
 		if regExp.MatchString(events[i].Description) {
 			if events[i].PassMode == selectedReader.Passmode && events[i].AccessPointId == selectedReader.AccessPointID {
@@ -262,7 +260,7 @@ func (s *Service) ReadKeyCode(ctx context.Context, sessionId string, idReader in
 		return keys[len(keys)-1], nil
 	}
 
-	return "", fmt.Errorf(" Считать ключ не удалось, попробуйте еще раз ")
+	return "", fmt.Errorf("Считать ключ не удалось, попробуйте еще раз")
 }
 
 func (s *Service) accessGuardian(ctx context.Context, sessionId string) error {
