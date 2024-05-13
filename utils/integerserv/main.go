@@ -48,7 +48,7 @@ func (s *integrService) Reboot() error {
 		return errServiceControl
 	}
 
-	_, err = s.service.Control(svc.Continue)
+	err = s.service.Start()
 	if err != nil {
 		logger.Error("Возникла ошибка при запуске службы: %w", err)
 		return errServiceControl
