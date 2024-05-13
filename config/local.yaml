@@ -1,6 +1,6 @@
 integer_server:
   address: "http://192.168.102.69:8090/soap/IOrionPro"     
-  title_service: ""
+  title_service: "Orion Pro Integration Service"
 server:
   port: 8082
   integrserv: "http://192.168.102.69:8090"

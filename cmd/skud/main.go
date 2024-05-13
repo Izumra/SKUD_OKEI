@@ -1,3 +1,6 @@
+//go:build windows
+// +build windows
+
 package main
 
 import (
@@ -8,6 +11,7 @@ import (
 	"syscall"
 
 	"github.com/Izumra/SKUD_OKEI/internal/app"
+	"github.com/Izumra/SKUD_OKEI/internal/lib/req"
 	"github.com/Izumra/SKUD_OKEI/internal/services/auth"
 	"github.com/Izumra/SKUD_OKEI/internal/services/events"
 	"github.com/Izumra/SKUD_OKEI/internal/services/key"
@@ -16,6 +20,7 @@ import (
 	"github.com/Izumra/SKUD_OKEI/internal/storage/main/sqlite"
 	"github.com/Izumra/SKUD_OKEI/lib/config"
 	"github.com/Izumra/SKUD_OKEI/lib/logger"
+	integrServUtil "github.com/Izumra/SKUD_OKEI/utils/integerserv"
 )
 
 func main() {
@@ -27,6 +32,14 @@ func main() {
 	ctx := context.Background()
 
 	db := sqlite.NewConnetion(cfg)
+
+	integrServiceUtil := integrServUtil.New(logger, cfg)
+	go func() {
+		for {
+			<-req.IntegrServiceUtilExitERRChan
+			integrServiceUtil.Reboot()
+		}
+	}()
 
 	sessStore := embedded.NewSessStore()
 

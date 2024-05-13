@@ -12,6 +12,8 @@ import (
 	"github.com/Izumra/SKUD_OKEI/domain/dto/integrserv"
 )
 
+var IntegrServiceUtilExitERRChan = make(chan error)
+
 var (
 	ErrOrionConnect = errors.New("Орион отвалился")
 )
@@ -31,22 +33,17 @@ func ReqToXMLIntegerServ(ctx context.Context, method string, url string, headers
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		if strings.HasSuffix(err.Error(), ": EOF") {
+			IntegrServiceUtilExitERRChan <- ErrOrionConnect
 			return ErrOrionConnect
 		}
 		return err
 	}
 	defer resp.Body.Close()
 
-	//log.Println(string(body))
-
 	data, _ := io.ReadAll(resp.Body)
-	// stream, _ := io.ReadAll(resp.Body)
-	// log.Println(string(stream))
 
-	//decoder := xml.NewDecoder(data)
 	err = xml.Unmarshal(data, expBody)
 	if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
-		//log.Println(string(data))
 		return err
 	}
 
