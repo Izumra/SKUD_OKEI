@@ -37,7 +37,7 @@ func main() {
 	go func() {
 		for {
 			<-req.IntegrServiceUtilExitERRChan
-			integrServiceUtil.Reboot()
+			integrServiceUtil.Reboot(context.Background())
 		}
 	}()
 

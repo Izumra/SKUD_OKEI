@@ -110,7 +110,7 @@ func (cc *CardController) ReadCardNumber() fiber.Handler {
 
 func (cc *CardController) AddKey() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		session := c.Cookies("session", "")
+		session := c.Cookies("session")
 
 		var body integrserv.KeyData
 
@@ -131,7 +131,7 @@ func (cc *CardController) AddKey() fiber.Handler {
 
 func (cc *CardController) UpdateKeyData() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		session := c.Cookies("session", "")
+		session := c.Cookies("session")
 
 		var body integrserv.KeyData
 
