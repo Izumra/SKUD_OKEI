@@ -11,3 +11,13 @@ type EnvelopeResp struct {
 
 	OperationResult any `xml:"Body"`
 }
+
+type ErrEnvelopeResp struct {
+	XMLName     xml.Name `xml:"Envelope" json:"-"`
+	XmlsSoapEnv string   `xml:"SOAP-ENV,attr" json:"-"`
+	XmlsSoapEnc string   `xml:"SOAP-ENC,attr" json:"-"`
+	XmlsXsd     string   `xml:"xsd,attr" json:"-"`
+	XmlsXsi     string   `xml:"xsi,attr" json:"-"`
+
+	OperationResult OperationResultServiceError `xml:"Body"`
+}

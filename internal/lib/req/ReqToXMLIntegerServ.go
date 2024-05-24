@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -41,6 +42,18 @@ func ReqToXMLIntegerServ(ctx context.Context, method string, url string, headers
 	defer resp.Body.Close()
 
 	data, _ := io.ReadAll(resp.Body)
+
+	var errOrion integrserv.Error
+	envelopeResp := integrserv.ErrEnvelopeResp{
+		OperationResult: integrserv.OperationResultServiceError{
+			Result: &errOrion,
+		},
+	}
+	checkData := make([]byte, len(data))
+	checkData = append(checkData, data...)
+	if err := xml.Unmarshal(checkData, &envelopeResp); err == nil {
+		return fmt.Errorf(errOrion.InnerExceptionMessage)
+	}
 
 	err = xml.Unmarshal(data, expBody)
 	if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {

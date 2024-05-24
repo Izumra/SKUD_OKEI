@@ -203,6 +203,7 @@ func (s *Service) AddPerson(
 		return nil, err
 	}
 
+	data.Status = 5
 	type ReqData struct {
 		XMLName    xml.Name
 		PersonData integrserv.PersonData

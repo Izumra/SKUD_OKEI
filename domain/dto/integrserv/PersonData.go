@@ -7,4 +7,5 @@ type PersonData struct {
 	LastName     string
 	MiddleName   string
 	TabNum       string
+	Status       int
 }
