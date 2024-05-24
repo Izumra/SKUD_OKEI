@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"log/slog"
 	"time"
 
@@ -53,19 +54,25 @@ func (s *integrService) Reboot(ctx context.Context) error {
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
 	defer cancel()
 
-	for status.State == svc.Stopped {
+	for status.State != svc.Stopped {
 		select {
 		case <-ctx.Done():
 			status, err := service.Query()
 			if err != nil {
 				return err
 			}
-
 			return fmt.Errorf("Сервис не остановился за 10 секунд, текущее состояние %v", status)
+		case <-ticker.C:
+			continue
 		}
 	}
+
+	log.Println("Служба IntegrServ перезагружена")
+	ticker.Stop()
 	cancel()
 
 	err = service.Start()

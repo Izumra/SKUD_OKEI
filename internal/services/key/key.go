@@ -163,6 +163,25 @@ func (s *Service) AddKey(ctx context.Context, sessionId string, keyData *integrs
 		return nil, err
 	}
 
+	keyData.CodeType = 4
+	keyData.AccessLevelId = 3
+	keyData.IsBlocked = false
+	keyData.IsStoreInDevice = true
+	keyData.IsStoreInS2000 = false
+	keyData.IsInStopList = false
+
+	keyData.StartDate = time.Now()
+	keyData.EndDate = time.Date(
+		keyData.StartDate.Year()+4,
+		keyData.StartDate.Month(),
+		keyData.StartDate.Day(),
+		keyData.StartDate.Hour(),
+		keyData.StartDate.Minute(),
+		keyData.StartDate.Second(),
+		keyData.StartDate.Nanosecond(),
+		keyData.StartDate.Location(),
+	)
+
 	type ReqData struct {
 		XMLName xml.Name
 		KeyData *integrserv.KeyData
@@ -182,6 +201,7 @@ func (s *Service) AddKey(ctx context.Context, sessionId string, keyData *integrs
 
 		Result: &respData,
 	}
+
 	err = req.PreparedReqToXMLIntegerServ(ctx, "AddKey", s.integrServAddr, reqData, respBody)
 	if err != nil {
 		logger.Info("Occured the error while updating person data", err)

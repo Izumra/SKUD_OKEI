@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
-	"log"
 
 	"github.com/Izumra/SKUD_OKEI/domain/dto/integrserv"
 )
@@ -49,12 +48,6 @@ func PreparedReqToXMLIntegerServ(
 		body,
 		&envelope,
 	)
-	if m, ok := respBody.(map[string]interface{}); ok {
-		log.Println(m)
-		if v, ok := m["InnerExceptionMessage"].(string); ok {
-			return fmt.Errorf("Ошибка при запросе к серверу xml-rpc - %s", v)
-		}
-	}
 
 	return err
 }
