@@ -33,7 +33,8 @@ func ReqToXMLIntegerServ(ctx context.Context, method string, url string, headers
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		if strings.HasSuffix(err.Error(), ": EOF") {
+		errDescription := err.Error()
+		if strings.HasSuffix(errDescription, ": EOF") || strings.HasSuffix(err.Error(), "No connection could be made because the target machine actively refused it.") {
 			IntegrServiceUtilExitERRChan <- ErrOrionConnect
 			return ErrOrionConnect
 		}

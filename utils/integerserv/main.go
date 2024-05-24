@@ -71,14 +71,30 @@ func (s *integrService) Reboot(ctx context.Context) error {
 		}
 	}
 
-	log.Println("Служба IntegrServ перезагружена")
-	ticker.Stop()
+	log.Println("Служба IntegrServ остановлена")
 	cancel()
 
-	err = service.Start()
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
+	defer ticker.Stop()
+	defer cancel()
+
+	status, err = service.Control(svc.Continue)
 	if err != nil {
 		s.logger.Error("Возникла ошибка при запуске службы: %w", err)
 		return errServiceControl
+	}
+
+	for status.State != svc.Running {
+		select {
+		case <-ctx.Done():
+			status, err := service.Query()
+			if err != nil {
+				return err
+			}
+			return fmt.Errorf("Сервис не запустился за 10 секунд, текущее состояние %v", status)
+		case <-ticker.C:
+			continue
+		}
 	}
 
 	return nil
