@@ -48,7 +48,7 @@ func (s *integrService) Reboot(ctx context.Context) error {
 	defer service.Close()
 
 	status, err := service.Control(svc.Stop)
-	if err != nil {
+	if err != nil && status.State != svc.Stopped {
 		s.logger.Error("Возникла ошибка при остановке службы: %w", err)
 		return errServiceControl
 	}
