@@ -78,7 +78,11 @@ func (s *integrService) Reboot(ctx context.Context) error {
 	defer ticker.Stop()
 	defer cancel()
 
-	status, err = service.Control(svc.Continue)
+	if err = service.Start(); err != nil {
+		return err
+	}
+
+	status, err = service.Query()
 	if err != nil {
 		s.logger.Error("Возникла ошибка при запуске службы: %w", err)
 		return errServiceControl
