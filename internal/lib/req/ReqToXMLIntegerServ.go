@@ -13,8 +13,6 @@ import (
 	"github.com/Izumra/SKUD_OKEI/domain/dto/integrserv"
 )
 
-var IntegrServiceUtilExitERRChan = make(chan error)
-
 var (
 	ErrOrionConnect = errors.New("Орион отвалился")
 )
@@ -35,7 +33,6 @@ func ReqToXMLIntegerServ(ctx context.Context, method string, url string, headers
 	if err != nil {
 		errDescription := err.Error()
 		if strings.HasSuffix(errDescription, ": EOF") || strings.HasSuffix(err.Error(), "No connection could be made because the target machine actively refused it.") {
-			IntegrServiceUtilExitERRChan <- ErrOrionConnect
 			return ErrOrionConnect
 		}
 		return err

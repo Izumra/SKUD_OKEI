@@ -8,9 +8,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/Izumra/SKUD_OKEI/internal/app"
-	"github.com/Izumra/SKUD_OKEI/internal/lib/req"
 	"github.com/Izumra/SKUD_OKEI/internal/services/auth"
 	"github.com/Izumra/SKUD_OKEI/internal/services/events"
 	"github.com/Izumra/SKUD_OKEI/internal/services/key"
@@ -35,7 +35,7 @@ func main() {
 	integrServiceUtil := integrServUtil.New(logger, cfg)
 	go func() {
 		for {
-			<-req.IntegrServiceUtilExitERRChan
+			time.Sleep(1 * time.Hour)
 			err := integrServiceUtil.Reboot(context.Background())
 			if err != nil {
 				logger.Info("Служба IntegrServ не перезагружена", slog.Any("причина", err))
