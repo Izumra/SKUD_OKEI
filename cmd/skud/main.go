@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Izumra/SKUD_OKEI/internal/app"
+	"github.com/Izumra/SKUD_OKEI/internal/lib/req"
 	"github.com/Izumra/SKUD_OKEI/internal/services/auth"
 	"github.com/Izumra/SKUD_OKEI/internal/services/events"
 	"github.com/Izumra/SKUD_OKEI/internal/services/key"
@@ -32,11 +33,12 @@ func main() {
 
 	db := sqlite.NewConnetion(cfg)
 
-	integrServiceUtil := integrServUtil.New(logger, cfg)
+	integrServiceUtil := integrServUtil.RebootManager(cfg.IntegerServer.TitleService, 20*time.Second)
 	go func() {
 		for {
-			time.Sleep(1 * time.Hour)
-			err := integrServiceUtil.Reboot(context.Background())
+			<-req.IntegrServiceUtilExitERRChan
+
+			err := integrServiceUtil(context.Background())
 			if err != nil {
 				logger.Info("Служба IntegrServ не перезагружена", slog.Any("причина", err))
 				continue
