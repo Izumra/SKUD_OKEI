@@ -45,7 +45,7 @@ func NewService(
 }
 
 func (s *Service) GetKeys(ctx context.Context, sessionId string, offset int64, count int64) ([]*integrserv.KeyData, error) {
-	op := "internal/services/key.Service.GetKeys"
+	op := "internal/services/key/Service.GetKeys"
 	logger := s.logger.With(slog.String("op", op))
 
 	type Data struct {
@@ -80,7 +80,7 @@ func (s *Service) GetKeys(ctx context.Context, sessionId string, offset int64, c
 }
 
 func (s *Service) GetKeyData(ctx context.Context, sessionId string, card string) (*integrserv.KeyData, error) {
-	op := "internal/services/key.Service.GetKeyData"
+	op := "internal/services/key/Service.GetKeyData"
 	logger := s.logger.With(slog.String("op", op))
 
 	err := s.accessGuardian(ctx, sessionId)
@@ -118,7 +118,7 @@ func (s *Service) GetKeyData(ctx context.Context, sessionId string, card string)
 }
 
 func (s *Service) UpdateKeyData(ctx context.Context, sessionId string, keyData *integrserv.KeyData) (*integrserv.KeyData, error) {
-	op := "internal/services/key.Service.UpdateKeyData"
+	op := "internal/services/key/Service.UpdateKeyData"
 	logger := s.logger.With(slog.String("op", op))
 
 	err := s.accessGuardian(ctx, sessionId)
@@ -155,7 +155,7 @@ func (s *Service) UpdateKeyData(ctx context.Context, sessionId string, keyData *
 }
 
 func (s *Service) AddKey(ctx context.Context, sessionId string, keyData *integrserv.KeyData) (*integrserv.KeyData, error) {
-	op := "internal/services/key.Service.AddKey"
+	op := "internal/services/key/Service.AddKey"
 	logger := s.logger.With(slog.String("op", op))
 
 	err := s.accessGuardian(ctx, sessionId)
@@ -212,7 +212,7 @@ func (s *Service) AddKey(ctx context.Context, sessionId string, keyData *integrs
 }
 
 func (s *Service) ReadKeyCode(ctx context.Context, sessionId string, idReader int) (string, error) {
-	op := "internal/services/key.Service.ReadKeyCode"
+	op := "internal/services/key/Service.ReadKeyCode"
 	logger := s.logger.With(slog.String("op", op))
 
 	err := s.accessGuardian(ctx, sessionId)
@@ -281,6 +281,81 @@ func (s *Service) ReadKeyCode(ctx context.Context, sessionId string, idReader in
 	}
 
 	return "", fmt.Errorf("Считать ключ не удалось, попробуйте еще раз")
+}
+
+func (s *Service) ConvertWiegandToTouchMemory(ctx context.Context, sessionId string, code int, codeSize int) (string, error) {
+	op := "internal/services/key/Service.ConvertWiegandToTouchMemory"
+	logger := s.logger.With(slog.String("op", op))
+
+	err := s.accessGuardian(ctx, sessionId)
+	if err != nil {
+		return "", err
+	}
+
+	type ReqData struct {
+		XMLName  xml.Name
+		Code     int
+		CodeSize int
+	}
+	reqData := ReqData{
+		XMLName: xml.Name{
+			Local: "ConvertWiegandToTouchMemory",
+		},
+		Code:     code,
+		CodeSize: codeSize,
+	}
+
+	var respData integrserv.Result
+	respBody := &integrserv.OperationResultString{
+		SoapEnvEncodingStyle: "http://schemas.xmlsoap.org/soap/encoding/",
+		XmlnsNS1:             "urn:OrionProIntf-IOrionPro",
+		XmlnsNS2:             "urn:OrionProIntf",
+
+		Result: &respData,
+	}
+	err = req.PreparedReqToXMLIntegerServ(ctx, "ConvertWiegandToTouchMemory", s.integrServAddr, reqData, respBody)
+	if err != nil {
+		logger.Info("Occured the error while updating person data", err)
+		return "", err
+	}
+
+	return respData.OperationResult, nil
+}
+func (s *Service) ConvertPinToTouchMemory(ctx context.Context, sessionId string, pin string) (string, error) {
+	op := "internal/services/key/Service.ConvertPinToTouchMemory"
+	logger := s.logger.With(slog.String("op", op))
+
+	err := s.accessGuardian(ctx, sessionId)
+	if err != nil {
+		return "", err
+	}
+
+	type ReqData struct {
+		XMLName xml.Name
+		Pin     string
+	}
+	reqData := ReqData{
+		XMLName: xml.Name{
+			Local: "ConvertPinToTouchMemory",
+		},
+		Pin: pin,
+	}
+
+	var respData integrserv.Result
+	respBody := &integrserv.OperationResultString{
+		SoapEnvEncodingStyle: "http://schemas.xmlsoap.org/soap/encoding/",
+		XmlnsNS1:             "urn:OrionProIntf-IOrionPro",
+		XmlnsNS2:             "urn:OrionProIntf",
+
+		Result: &respData,
+	}
+	err = req.PreparedReqToXMLIntegerServ(ctx, "ConvertPinToTouchMemory", s.integrServAddr, reqData, respBody)
+	if err != nil {
+		logger.Info("Occured the error while updating person data", err)
+		return "", err
+	}
+
+	return respData.OperationResult, nil
 }
 
 func (s *Service) accessGuardian(ctx context.Context, sessionId string) error {

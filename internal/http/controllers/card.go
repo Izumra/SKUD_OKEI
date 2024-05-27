@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/Izumra/SKUD_OKEI/domain/dto/integrserv"
+	"github.com/Izumra/SKUD_OKEI/domain/dto/reqs"
 	"github.com/Izumra/SKUD_OKEI/internal/lib/response"
 	"github.com/gofiber/fiber/v2"
 )
@@ -17,6 +18,8 @@ type CardService interface {
 	UpdateKeyData(ctx context.Context, sessionId string, keyData *integrserv.KeyData) (*integrserv.KeyData, error)
 	AddKey(ctx context.Context, sessionId string, keyData *integrserv.KeyData) (*integrserv.KeyData, error)
 	ReadKeyCode(ctx context.Context, sessionId string, idReader int) (string, error)
+	ConvertWiegandToTouchMemory(ctx context.Context, sessionId string, code int, codeSize int) (string, error)
+	ConvertPinToTouchMemory(ctx context.Context, sessionId string, pin string) (string, error)
 }
 
 type CardController struct {
@@ -32,6 +35,8 @@ func RegistrCardAPI(router fiber.Router, cs CardService) {
 	router.Put("/", ac.UpdateKeyData())
 	router.Post("/", ac.AddKey())
 	router.Get("/read_card_number/:id_reader", ac.ReadCardNumber())
+	router.Post("/wiegand_to_touch_memory", ac.WiegandToTouchMemory())
+	router.Post("/pin_to_touch_memory/:code", ac.PinToTouchMemory())
 	router.Get("/:offset/:count", ac.GetKeys())
 
 }
@@ -147,5 +152,40 @@ func (cc *CardController) UpdateKeyData() fiber.Handler {
 		}
 
 		return c.JSON(response.SuccessRes(result))
+	}
+}
+
+func (cc *CardController) WiegandToTouchMemory() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		session := c.Cookies("session")
+
+		var body reqs.WiegandToTouchMemory
+		if err := json.Unmarshal(c.Body(), &body); err != nil {
+			c.Status(fiber.StatusBadRequest)
+			return c.JSON(response.BadRes(ErrBodyParse))
+		}
+
+		code, err := cc.service.ConvertWiegandToTouchMemory(c.Context(), session, body.Code, body.CodeSize)
+		if err != nil {
+			c.Status(fiber.StatusInternalServerError)
+			return c.JSON(response.BadRes(err))
+		}
+
+		return c.JSON(response.SuccessRes(code))
+	}
+}
+
+func (cc *CardController) PinToTouchMemory() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		session := c.Cookies("session")
+		pinCode := c.Params("code")
+
+		code, err := cc.service.ConvertPinToTouchMemory(c.Context(), session, pinCode)
+		if err != nil {
+			c.Status(fiber.StatusInternalServerError)
+			return c.JSON(response.BadRes(err))
+		}
+
+		return c.JSON(response.SuccessRes(code))
 	}
 }

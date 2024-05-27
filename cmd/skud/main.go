@@ -36,7 +36,12 @@ func main() {
 	go func() {
 		for {
 			<-req.IntegrServiceUtilExitERRChan
-			integrServiceUtil.Reboot(context.Background())
+			err := integrServiceUtil.Reboot(context.Background())
+			if err != nil {
+				logger.Info("Служба IntegrServ не перезагружена", slog.Any("причина", err))
+				continue
+			}
+			logger.Info("Служба IntegrServ перезагружена")
 		}
 	}()
 
