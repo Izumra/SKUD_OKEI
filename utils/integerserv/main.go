@@ -57,7 +57,7 @@ func RebootManager(titleService string, delayTry time.Duration) Reboot {
 				if err != nil {
 					return err
 				}
-				return fmt.Errorf("Сервис не остановился за 10 секунд, текущее состояние %v", status)
+				return fmt.Errorf("Сервис не остановился за установленное время, текущее состояние %v", status)
 			case <-ticker.C:
 				continue
 			}
@@ -88,6 +88,11 @@ func RebootManager(titleService string, delayTry time.Duration) Reboot {
 				}
 				return fmt.Errorf("Сервис не запустился за установленное время, текущее состояние %v", status)
 			case <-ticker.C:
+				status, err = service.Query()
+				if err != nil {
+					return fmt.Errorf("Возникла ошибка при запуске службы: %w", err)
+				}
+
 				continue
 			}
 		}
