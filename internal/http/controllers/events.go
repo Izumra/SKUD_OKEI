@@ -16,7 +16,7 @@ import (
 )
 
 type EventsService interface {
-	GetEvents(ctx context.Context, eventsFilter *integrserv.EventFilter) ([]*integrserv.Event, error)
+	GetEvents(ctx context.Context, eventsFilter *integrserv.EventFilter) ([]integrserv.Event, error)
 	GetEventsCount(ctx context.Context, eventsFilter *integrserv.EventCountFilter) (int64, error)
 }
 
