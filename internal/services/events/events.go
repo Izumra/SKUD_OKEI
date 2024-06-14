@@ -28,11 +28,11 @@ func NewService(
 	}
 }
 
-func (s *Service) GetEvents(ctx context.Context, eventsFilter *integrserv.EventFilter) ([]*integrserv.Event, error) {
+func (s *Service) GetEvents(ctx context.Context, eventsFilter *integrserv.EventFilter) ([]integrserv.Event, error) {
 	op := "internal/services/events.Service.GetEvents"
 	logger := s.logger.With(slog.String("op", op))
 
-	var expBody []*integrserv.Event
+	var expBody []integrserv.Event
 	respBody := integrserv.OperationResultEvents{
 		SoapEnvEncodingStyle: "http://schemas.xmlsoap.org/soap/encoding/",
 		XmlnsNS1:             "urn:OrionProIntf-IOrionPro",

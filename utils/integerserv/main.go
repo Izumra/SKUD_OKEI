@@ -53,12 +53,12 @@ func RebootManager(titleService string, delayTry time.Duration) Reboot {
 		for status.State != svc.Stopped {
 			select {
 			case <-ctx.Done():
-				status, err := service.Query()
+				return fmt.Errorf("Сервис не остановился за установленное время, текущее состояние %v", status.State)
+			case <-ticker.C:
+				status, err = service.Query()
 				if err != nil {
 					return err
 				}
-				return fmt.Errorf("Сервис не остановился за установленное время, текущее состояние %v", status)
-			case <-ticker.C:
 				continue
 			}
 		}
@@ -67,12 +67,9 @@ func RebootManager(titleService string, delayTry time.Duration) Reboot {
 		cancel()
 
 		ctx, cancel = context.WithTimeout(ctx, delayTry)
-		defer ticker.Stop()
 		defer cancel()
 
-		if err = service.Start(); err != nil {
-			return err
-		}
+		go service.Start()
 
 		status, err = service.Query()
 		if err != nil {
@@ -82,17 +79,12 @@ func RebootManager(titleService string, delayTry time.Duration) Reboot {
 		for status.State != svc.Running {
 			select {
 			case <-ctx.Done():
-				status, err := service.Query()
-				if err != nil {
-					return err
-				}
-				return fmt.Errorf("Сервис не запустился за установленное время, текущее состояние %v", status)
+				return fmt.Errorf("Сервис не запустился за установленное время, текущее состояние %v", status.State)
 			case <-ticker.C:
 				status, err = service.Query()
 				if err != nil {
 					return fmt.Errorf("Возникла ошибка при запуске службы: %w", err)
 				}
-
 				continue
 			}
 		}

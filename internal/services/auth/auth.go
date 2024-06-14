@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 
 	"github.com/Izumra/SKUD_OKEI/domain/dto/resp"
@@ -53,6 +54,9 @@ func (s *Service) Login(ctx context.Context, username, password string) (*resp.S
 	if err != nil {
 		logger.Error("Occured the error while finding the user", err)
 		return nil, err
+	}
+	if user.Password != password {
+		return nil, fmt.Errorf("Пароли не совпадают")
 	}
 
 	sessionId, err := s.sessStorage.Create(ctx, user)
