@@ -40,15 +40,15 @@ func RebootManager(titleService string, delayTry time.Duration) Reboot {
 		}
 		defer service.Close()
 
-		status, err := service.Control(svc.Stop)
-		if err != nil && status.State != svc.Stopped {
-			return fmt.Errorf("Ошибка отправки сигнала службе: " + err.Error())
-		}
-
 		stopCtx, cancel := context.WithTimeout(ctx, delayTry)
 		ticker := time.NewTicker(time.Second)
 		defer ticker.Stop()
 		defer cancel()
+
+		status, err := service.Control(svc.Stop)
+		if err != nil {
+			return fmt.Errorf("Ошибка отправки сигнала службе: " + err.Error())
+		}
 
 		for status.State != svc.Stopped {
 			select {

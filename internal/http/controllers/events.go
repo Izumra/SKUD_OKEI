@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
@@ -44,7 +43,6 @@ func (ec *EventsController) GetEventsCount() fiber.Handler {
 
 		err := c.BodyParser(&reqBody)
 		if err != nil {
-			log.Println(err)
 			c.Status(fiber.StatusBadRequest)
 			return c.JSON(response.BadRes(ErrBodyParse))
 		}
@@ -52,14 +50,12 @@ func (ec *EventsController) GetEventsCount() fiber.Handler {
 		layout := "2006-01-02T15:04:05"
 		beginTime, err := time.Parse(layout, reqBody.BeginTime)
 		if err != nil {
-			log.Println(err)
 			c.Status(fiber.StatusBadRequest)
 			return c.JSON(response.BadRes(ErrBodyParse))
 		}
 
 		endTime, err := time.Parse(layout, reqBody.EndTime)
 		if err != nil {
-			log.Println(err)
 			c.Status(fiber.StatusBadRequest)
 			return c.JSON(response.BadRes(ErrBodyParse))
 		}
@@ -96,7 +92,6 @@ func (ec *EventsController) GetEvents() fiber.Handler {
 
 		err := c.BodyParser(&reqBody)
 		if err != nil {
-			log.Println(err)
 			c.Status(fiber.StatusBadRequest)
 			return c.JSON(response.BadRes(ErrBodyParse))
 		}
@@ -104,14 +99,12 @@ func (ec *EventsController) GetEvents() fiber.Handler {
 		layout := "2006-01-02T15:04:05"
 		beginTime, err := time.Parse(layout, reqBody.BeginTime)
 		if err != nil {
-			log.Println(err)
 			c.Status(fiber.StatusBadRequest)
 			return c.JSON(response.BadRes(ErrBodyParse))
 		}
 
 		endTime, err := time.Parse(layout, reqBody.EndTime)
 		if err != nil {
-			log.Println(err)
 			c.Status(fiber.StatusBadRequest)
 			return c.JSON(response.BadRes(ErrBodyParse))
 		}
