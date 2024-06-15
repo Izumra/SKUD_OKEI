@@ -45,14 +45,14 @@ func RebootManager(titleService string, delayTry time.Duration) Reboot {
 			return fmt.Errorf("Ошибка отправки сигнала службе: " + err.Error())
 		}
 
-		ctx, cancel := context.WithTimeout(ctx, delayTry)
+		stopCtx, cancel := context.WithTimeout(ctx, delayTry)
 		ticker := time.NewTicker(time.Second)
 		defer ticker.Stop()
 		defer cancel()
 
 		for status.State != svc.Stopped {
 			select {
-			case <-ctx.Done():
+			case <-stopCtx.Done():
 				return fmt.Errorf("Сервис не остановился за установленное время, текущее состояние %v", status.State)
 			case <-ticker.C:
 				status, err = service.Query()
@@ -66,7 +66,7 @@ func RebootManager(titleService string, delayTry time.Duration) Reboot {
 		log.Println("Служба IntegrServ остановлена")
 		cancel()
 
-		ctx, cancel = context.WithTimeout(ctx, delayTry)
+		startCtx, cancel := context.WithTimeout(ctx, delayTry)
 		defer cancel()
 
 		go service.Start()
@@ -78,7 +78,7 @@ func RebootManager(titleService string, delayTry time.Duration) Reboot {
 
 		for status.State != svc.Running {
 			select {
-			case <-ctx.Done():
+			case <-startCtx.Done():
 				return fmt.Errorf("Сервис не запустился за установленное время, текущее состояние %v", status.State)
 			case <-ticker.C:
 				status, err = service.Query()
