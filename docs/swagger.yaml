@@ -1,0 +1,736 @@
+definitions:
+  integrserv.Department:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  integrserv.KeyData:
+    properties:
+      accessLevelId:
+        type: integer
+      code:
+        type: string
+      codeType:
+        type: integer
+      endDate:
+        type: string
+      id:
+        type: integer
+      isBlocked:
+        type: boolean
+      isInStopList:
+        type: boolean
+      isStoreInDevice:
+        type: boolean
+      isStoreInS2000:
+        type: boolean
+      personId:
+        type: integer
+      startDate:
+        type: string
+    type: object
+  integrserv.PersonData:
+    properties:
+      departmentId:
+        type: integer
+      firstName:
+        type: string
+      id:
+        type: integer
+      lastName:
+        type: string
+      middleName:
+        type: string
+      status:
+        type: integer
+      tabNum:
+        type: string
+    type: object
+  reqs.LoginBody:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  reqs.WiegandToTouchMemory:
+    properties:
+      code:
+        type: integer
+      codeSize:
+        type: integer
+    type: object
+  resp.Action:
+    properties:
+      action:
+        type: string
+      time:
+        type: string
+    type: object
+  resp.Activity:
+    properties:
+      coming:
+        type: integer
+      leaving:
+        type: integer
+      time:
+        type: string
+    type: object
+  resp.SuccessAuth:
+    properties:
+      username:
+        type: string
+    type: object
+  response.Body:
+    properties:
+      data: {}
+      error: {}
+    type: object
+info:
+  contact: {}
+paths:
+  /api/cards:
+    post:
+      consumes:
+      - application/json
+      description: Метод API, позволяющий авторизированному пользователю зарегестрировать
+        новый электронный ключ
+      parameters:
+      - description: Тело запроса формата 'application/json', содержащее информацию
+          о добавляемом ключе
+        in: body
+        name: NewKeyBody
+        required: true
+        schema:
+          $ref: '#/definitions/integrserv.KeyData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Структура успешного ответа запроса добавления нового ключа
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  $ref: '#/definitions/integrserv.KeyData'
+                error:
+                  type: object
+              type: object
+        "500":
+          description: Структура неудачного ответа запроса добавления нового ключа
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Регистрация электронного ключа
+      tags:
+      - Keys
+    put:
+      consumes:
+      - application/json
+      description: Метод API, позволяющий авторизированному пользователю изменить
+        информацию об электронном ключе
+      parameters:
+      - description: Тело запроса формата 'application/json', содержащее информацию
+          для обновления ключа
+        in: body
+        name: UpdateKeyBody
+        required: true
+        schema:
+          $ref: '#/definitions/integrserv.KeyData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Структура успешного ответа запроса обновления ключа
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  $ref: '#/definitions/integrserv.KeyData'
+                error:
+                  type: object
+              type: object
+        "404":
+          description: Структура неудачного ответа запроса обновления ключа
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Обновление информации электронного ключа
+      tags:
+      - Keys
+  /api/cards/:
+    get:
+      description: Метод API, позволяющий авторизированному пользователю получить
+        список ключей начиная с шага смещения, указанного в параметре 'offset', количества,
+        заданного параметром 'count'
+      parameters:
+      - default: 0
+        description: Шаг смещения
+        in: query
+        name: offset
+        required: true
+        type: integer
+      - default: 0
+        description: Количество
+        in: query
+        name: count
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Структура успешного ответа запроса получения ключей
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/integrserv.KeyData'
+                  type: array
+                error:
+                  type: object
+              type: object
+        "404":
+          description: Структура неудачного ответа запроса получения ключей
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Получение ключей СКУД
+      tags:
+      - Keys
+  /api/cards/by_card_number:
+    get:
+      description: Метод API, позволяющий авторизированному пользователю получить
+        информацию о ключе по переданному параметру электронного кода 'card_no'
+      parameters:
+      - default: '"CA00000082942101"'
+        description: Электронный код пропуска
+        in: query
+        name: card_no
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Структура успешного ответа запроса получения данных о ключе
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  $ref: '#/definitions/integrserv.KeyData'
+                error:
+                  type: object
+              type: object
+        "404":
+          description: Структура неудачного ответа запроса получения данных о ключе
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Получение данных о ключе СКУД
+      tags:
+      - Keys
+  /api/cards/read_card_number:
+    get:
+      description: Метод API, позволяющий авторизированному пользователю считать электронный
+        код пропуска со считывателя
+      parameters:
+      - default: 2
+        description: Номер считывателя
+        in: query
+        name: id_reader
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Структура успешного ответа запроса получения электронного кода
+            пропуска
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  $ref: '#/definitions/integrserv.KeyData'
+                error:
+                  type: object
+              type: object
+        "404":
+          description: Структура неудачного ответа запроса получения электронного
+            кода пропуска
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Считывание электронного кода
+      tags:
+      - Keys
+  /api/cards/wiegand_to_touch_memory:
+    post:
+      consumes:
+      - application/json
+      description: Метод API, позволяющий авторизированному пользователю конвертировать
+        десятичный код на личецвой стороне электронного пропуска к формату, понятному
+        'Орион Про' - Wiegand 26
+      parameters:
+      - description: Тело запроса формата 'application/json', содержащее информацию
+          для конвертации электронного кода
+        in: body
+        name: ConvertKeyCodeToWiegandBody
+        required: true
+        schema:
+          $ref: '#/definitions/reqs.WiegandToTouchMemory'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Структура успешного ответа запроса конвертации кода ключа
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: string
+                error:
+                  type: object
+              type: object
+        "404":
+          description: Структура неудачного ответа запроса конвертации кода ключа
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Конвертация десятичного кода карточки к формату Wiegand 26
+      tags:
+      - Keys
+  /api/persons/:
+    delete:
+      consumes:
+      - application/json
+      description: Метод API, позволяющий авторизированному пользователю удалить субъект
+        доступа СКУД
+      parameters:
+      - description: Тело запроса удаления субъекта доступа СКУД, формата 'application/json',
+          в котором передается информация о субъекте доступа
+        in: body
+        name: DeletePersonBody
+        required: true
+        schema:
+          $ref: '#/definitions/integrserv.PersonData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Структура успешного ответа выполнения запроса удаления субъекта
+            доступа СКУД
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  $ref: '#/definitions/integrserv.PersonData'
+                error:
+                  type: object
+              type: object
+        "400":
+          description: Структура неудачного ответа выполнения запроса удаления субъекта
+            доступа СКУД
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Удаление субъекта доступа СКУД
+      tags:
+      - Persons
+    get:
+      description: Метод API, позволяющий авторизированному пользователю получить
+        информацию о субъекте доступа СКУД'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Структура успешного ответа выполнения запроса получения информации
+            о субъекте доступа СКУД
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  $ref: '#/definitions/integrserv.PersonData'
+                error:
+                  type: object
+              type: object
+        "404":
+          description: Структура неудачного ответа выполнения запроса получения информации
+            о субъекте доступа СКУД
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Получение информации о субъекте доступа СКУД
+      tags:
+      - Persons
+    post:
+      consumes:
+      - application/json
+      description: Метод API, позволяющий авторизированному пользователю добавить
+        нового субъекта доступа СКУД
+      parameters:
+      - description: Тело запроса добавления нового субъекта доступа СКУД, формата
+          'application/json', в котором передается информация о субъекте доступа
+        in: body
+        name: AddPersonBody
+        required: true
+        schema:
+          $ref: '#/definitions/integrserv.PersonData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Структура успешного ответа выполнения запроса добавления субъекта
+            доступа СКУД
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  $ref: '#/definitions/integrserv.PersonData'
+                error:
+                  type: object
+              type: object
+        "400":
+          description: Структура неудачного ответа выполнения запроса добавления субъекта
+            доступа СКУД
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Добавление субъекта доступа СКУД
+      tags:
+      - Persons
+    put:
+      consumes:
+      - application/json
+      description: Метод API, позволяющий авторизированному пользователю изменить
+        информацию о субъекте доступа СКУД
+      parameters:
+      - description: Тело запроса обновления информации о субъекте доступа СКУД, формата
+          'application/json', в котором передается информация о субъекте доступа
+        in: body
+        name: UpdatePersonBody
+        required: true
+        schema:
+          $ref: '#/definitions/integrserv.PersonData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Структура успешного ответа выполнения запроса обновления информации
+            о субъекте доступа СКУД
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  $ref: '#/definitions/integrserv.PersonData'
+                error:
+                  type: object
+              type: object
+        "400":
+          description: Структура неудачного ответа выполнения запроса обновления информации
+            о субъекте доступа СКУД
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Обновление информации о субъекте доступа СКУД
+      tags:
+      - Persons
+  /api/persons/activity/dayly:
+    get:
+      description: Метод API, позволяющий авторизированному пользователю получить
+        информацию о статистике посещаемости субъектом доступа за конкретный день
+      parameters:
+      - default: "2024-03-02T15:04:05-07:00"
+        description: День посещения
+        in: query
+        name: date
+        required: true
+        type: string
+      - default: 1417
+        description: Идентификатор субъекта доступа СКУД
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Структура успешного ответа выполнения запроса получения информации
+            о статистике посещаемости субъектом доступа СКУД за конкретный день
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/resp.Action'
+                  type: array
+                error:
+                  type: object
+              type: object
+        "500":
+          description: Структура неудачного ответа выполнения запроса получения информации
+            о статистике посещаемости субъектом доступа СКУД за конкретный день
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Получение информации о статистике посещаемости субъектом доступа за
+        день СКУД
+      tags:
+      - Persons
+  /api/persons/activity/monthly:
+    get:
+      description: Метод API, позволяющий авторизированному пользователю получить
+        информацию о статистике посещаемости субъектом доступа за конкретный месяц
+      parameters:
+      - default: "2024-03-02T15:04:05-07:00"
+        description: Месяц на который нужно расчитать статистику
+        in: query
+        name: date
+        required: true
+        type: string
+      - default: 1417
+        description: Идентификатор субъекта доступа СКУД
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Структура успешного ответа выполнения запроса получения информации
+            о статистике посещаемости субъектом доступа СКУД за конкретный месяц
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/resp.Activity'
+                  type: array
+                error:
+                  type: object
+              type: object
+        "500":
+          description: Структура неудачного ответа выполнения запроса получения информации
+            о статистике посещаемости субъектом доступа СКУД за конкретный месяц
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Получение информации о статистике посещаемости субъектом доступа за
+        месяц СКУД
+      tags:
+      - Persons
+  /api/persons/departments:
+    get:
+      description: Метод API, позволяющий авторизированному пользователю получить
+        информацию о группах субъектов доступа СКУД
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Структура успешного ответа выполнения запроса получения информации
+            о группах субъектов доступа СКУД
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/integrserv.Department'
+                  type: array
+                error:
+                  type: object
+              type: object
+        "500":
+          description: Структура неудачного ответа выполнения запроса получения информации
+            о группах субъектов доступа СКУД
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Получение информации о группах субъектов доступа СКУД
+      tags:
+      - Persons
+  /api/persons/filter/:
+    post:
+      consumes:
+      - application/json
+      description: Метод API, позволяющий авторизированному пользователю получить
+        список субъектов доступа по переданному в теле запроса, массиву фильтров формата
+        'ключ=значение'
+      parameters:
+      - default: 0
+        description: Шаг смещения
+        in: query
+        name: offset
+        required: true
+        type: integer
+      - default: 0
+        description: Количество
+        in: query
+        name: count
+        required: true
+        type: integer
+      - description: Тело запроса формата 'application/json', содержащее массив фильтров
+        in: body
+        name: Filters
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Структура успешного ответа запроса фильтрации субъектов
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/integrserv.PersonData'
+                  type: array
+                error:
+                  type: object
+              type: object
+        "404":
+          description: Структура неудачного ответа запроса фильтрации субъектов
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Фильтрация субъектов доступа СКУД
+      tags:
+      - Persons
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Метод API для предоставления доступа пользователю к системе
+      parameters:
+      - description: Тело запроса авторизации пользователя формата 'application/json',
+          в котором передается имя пользователя и пароль
+        in: body
+        name: LoginBody
+        required: true
+        schema:
+          $ref: '#/definitions/reqs.LoginBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешная авторизация
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.SuccessAuth'
+                error:
+                  type: object
+              type: object
+        "404":
+          description: Авторизация с недествительными данными
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Авторизация
+      tags:
+      - Auth
+  /logout:
+    post:
+      description: Метод API для принудительного завершения сессии пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Завершение сессии
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Body'
+            - properties:
+                data:
+                  type: string
+                error:
+                  type: object
+              type: object
+      summary: Завершение сессии
+      tags:
+      - Auth
+swagger: "2.0"

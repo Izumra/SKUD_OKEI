@@ -41,6 +41,15 @@ func RegistrCardAPI(router fiber.Router, cs CardService) {
 
 }
 
+// @Summary Получение ключей СКУД
+// @Description Метод API, позволяющий авторизированному пользователю получить список ключей начиная с шага смещения, указанного в параметре 'offset', количества, заданного параметром 'count'
+// @Tags Keys
+// @Produce  json
+// @Param offset query int true "Шаг смещения" default(0)
+// @Param count query int true "Количество" default(0)
+// @Success 200 {object} response.Body{data=[]integrserv.KeyData,error=nil} "Структура успешного ответа запроса получения ключей"
+// @Failure 404 {object} response.Body{data=nil} "Структура неудачного ответа запроса получения ключей"
+// @Router /api/cards/ [get]
 func (cc *CardController) GetKeys() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		session := c.Cookies("session", "")
@@ -70,6 +79,14 @@ func (cc *CardController) GetKeys() fiber.Handler {
 	}
 }
 
+// @Summary Получение данных о ключе СКУД
+// @Description Метод API, позволяющий авторизированному пользователю получить информацию о ключе по переданному параметру электронного кода 'card_no'
+// @Tags Keys
+// @Produce  json
+// @Param card_no query string true "Электронный код пропуска" default("CA00000082942101")
+// @Success 200 {object} response.Body{data=integrserv.KeyData,error=nil} "Структура успешного ответа запроса получения данных о ключе"
+// @Failure 404 {object} response.Body{data=nil} "Структура неудачного ответа запроса получения данных о ключе"
+// @Router /api/cards/by_card_number [get]
 func (cc *CardController) GetKeyData() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		session := c.Cookies("session", "")
@@ -91,6 +108,14 @@ func (cc *CardController) GetKeyData() fiber.Handler {
 	}
 }
 
+// @Summary Считывание электронного кода
+// @Description Метод API, позволяющий авторизированному пользователю считать электронный код пропуска со считывателя
+// @Tags Keys
+// @Produce  json
+// @Param id_reader query int true "Номер считывателя" default(2)
+// @Success 200 {object} response.Body{data=integrserv.KeyData,error=nil} "Структура успешного ответа запроса получения электронного кода пропуска"
+// @Failure 404 {object} response.Body{data=nil} "Структура неудачного ответа запроса получения электронного кода пропуска"
+// @Router /api/cards/read_card_number [get]
 func (cc *CardController) ReadCardNumber() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		session := c.Cookies("session", "")
@@ -113,6 +138,15 @@ func (cc *CardController) ReadCardNumber() fiber.Handler {
 	}
 }
 
+// @Summary Регистрация электронного ключа
+// @Description Метод API, позволяющий авторизированному пользователю зарегестрировать новый электронный ключ
+// @Tags Keys
+// @Accept json
+// @Produce  json
+// @Param NewKeyBody body integrserv.KeyData true "Тело запроса формата 'application/json', содержащее информацию о добавляемом ключе"
+// @Success 200 {object} response.Body{data=integrserv.KeyData,error=nil} "Структура успешного ответа запроса добавления нового ключа"
+// @Failure 500 {object} response.Body{data=nil} "Структура неудачного ответа запроса добавления нового ключа"
+// @Router /api/cards [post]
 func (cc *CardController) AddKey() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		session := c.Cookies("session")
@@ -134,6 +168,15 @@ func (cc *CardController) AddKey() fiber.Handler {
 	}
 }
 
+// @Summary Обновление информации электронного ключа
+// @Description Метод API, позволяющий авторизированному пользователю изменить информацию об электронном ключе
+// @Tags Keys
+// @Accept json
+// @Produce  json
+// @Param UpdateKeyBody body integrserv.KeyData true "Тело запроса формата 'application/json', содержащее информацию для обновления ключа"
+// @Success 200 {object} response.Body{data=integrserv.KeyData,error=nil} "Структура успешного ответа запроса обновления ключа"
+// @Failure 404 {object} response.Body{data=nil} "Структура неудачного ответа запроса обновления ключа"
+// @Router /api/cards [put]
 func (cc *CardController) UpdateKeyData() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		session := c.Cookies("session")
@@ -155,6 +198,15 @@ func (cc *CardController) UpdateKeyData() fiber.Handler {
 	}
 }
 
+// @Summary Конвертация десятичного кода карточки к формату Wiegand 26
+// @Description Метод API, позволяющий авторизированному пользователю конвертировать десятичный код на личецвой стороне электронного пропуска к формату, понятному 'Орион Про' - Wiegand 26
+// @Tags Keys
+// @Accept json
+// @Produce  json
+// @Param ConvertKeyCodeToWiegandBody body reqs.WiegandToTouchMemory true "Тело запроса формата 'application/json', содержащее информацию для конвертации электронного кода"
+// @Success 200 {object} response.Body{data=string,error=nil} "Структура успешного ответа запроса конвертации кода ключа"
+// @Failure 404 {object} response.Body{data=nil} "Структура неудачного ответа запроса конвертации кода ключа"
+// @Router /api/cards/wiegand_to_touch_memory [post]
 func (cc *CardController) WiegandToTouchMemory() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		session := c.Cookies("session")

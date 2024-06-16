@@ -1,1 +1,0 @@
-# SKUD_OKEI
