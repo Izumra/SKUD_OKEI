@@ -45,8 +45,8 @@ func RegistrCardAPI(router fiber.Router, cs CardService) {
 // @Description Метод API, позволяющий авторизированному пользователю получить список ключей начиная с шага смещения, указанного в параметре 'offset', количества, заданного параметром 'count'
 // @Tags Keys
 // @Produce  json
-// @Param offset query int true "Шаг смещения" default(0)
-// @Param count query int true "Количество" default(0)
+// @Param offset path int true "Шаг смещения" default(0)
+// @Param count path int true "Количество" default(0)
 // @Success 200 {object} response.Body{data=[]integrserv.KeyData,error=nil} "Структура успешного ответа запроса получения ключей"
 // @Failure 404 {object} response.Body{data=nil} "Структура неудачного ответа запроса получения ключей"
 // @Router /api/cards/ [get]
@@ -83,7 +83,7 @@ func (cc *CardController) GetKeys() fiber.Handler {
 // @Description Метод API, позволяющий авторизированному пользователю получить информацию о ключе по переданному параметру электронного кода 'card_no'
 // @Tags Keys
 // @Produce  json
-// @Param card_no query string true "Электронный код пропуска" default("CA00000082942101")
+// @Param card_no path string true "Электронный код пропуска" default("CA00000082942101")
 // @Success 200 {object} response.Body{data=integrserv.KeyData,error=nil} "Структура успешного ответа запроса получения данных о ключе"
 // @Failure 404 {object} response.Body{data=nil} "Структура неудачного ответа запроса получения данных о ключе"
 // @Router /api/cards/by_card_number [get]
@@ -112,7 +112,7 @@ func (cc *CardController) GetKeyData() fiber.Handler {
 // @Description Метод API, позволяющий авторизированному пользователю считать электронный код пропуска со считывателя
 // @Tags Keys
 // @Produce  json
-// @Param id_reader query int true "Номер считывателя" default(2)
+// @Param id_reader path int true "Номер считывателя" default(2)
 // @Success 200 {object} response.Body{data=integrserv.KeyData,error=nil} "Структура успешного ответа запроса получения электронного кода пропуска"
 // @Failure 404 {object} response.Body{data=nil} "Структура неудачного ответа запроса получения электронного кода пропуска"
 // @Router /api/cards/read_card_number [get]

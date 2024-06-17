@@ -178,13 +178,13 @@ paths:
       parameters:
       - default: 0
         description: Шаг смещения
-        in: query
+        in: path
         name: offset
         required: true
         type: integer
       - default: 0
         description: Количество
-        in: query
+        in: path
         name: count
         required: true
         type: integer
@@ -223,7 +223,7 @@ paths:
       parameters:
       - default: '"CA00000082942101"'
         description: Электронный код пропуска
-        in: query
+        in: path
         name: card_no
         required: true
         type: string
@@ -260,7 +260,7 @@ paths:
       parameters:
       - default: 2
         description: Номер считывателя
-        in: query
+        in: path
         name: id_reader
         required: true
         type: integer
@@ -495,13 +495,13 @@ paths:
       parameters:
       - default: "2024-03-02T15:04:05-07:00"
         description: День посещения
-        in: query
+        in: path
         name: date
         required: true
         type: string
       - default: 1417
         description: Идентификатор субъекта доступа СКУД
-        in: query
+        in: path
         name: id
         required: true
         type: integer
@@ -543,13 +543,13 @@ paths:
       parameters:
       - default: "2024-03-02T15:04:05-07:00"
         description: Месяц на который нужно расчитать статистику
-        in: query
+        in: path
         name: date
         required: true
         type: string
       - default: 1417
         description: Идентификатор субъекта доступа СКУД
-        in: query
+        in: path
         name: id
         required: true
         type: integer
@@ -628,13 +628,13 @@ paths:
       parameters:
       - default: 0
         description: Шаг смещения
-        in: query
+        in: path
         name: offset
         required: true
         type: integer
       - default: 0
         description: Количество
-        in: query
+        in: path
         name: count
         required: true
         type: integer

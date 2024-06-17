@@ -56,8 +56,8 @@ func RegistrPersonsAPI(router fiber.Router, ps PersonsService) {
 // @Tags Persons
 // @Accept  json
 // @Produce  json
-// @Param offset query int true "Шаг смещения" default(0)
-// @Param count query int true "Количество" default(0)
+// @Param offset path int true "Шаг смещения" default(0)
+// @Param count path int true "Количество" default(0)
 // @Param Filters body []string true "Тело запроса формата 'application/json', содержащее массив фильтров"
 // @Success 200 {object} response.Body{data=[]integrserv.PersonData,error=nil} "Структура успешного ответа запроса фильтрации субъектов"
 // @Failure 404 {object} response.Body{data=nil} "Структура неудачного ответа запроса фильтрации субъектов"
@@ -241,8 +241,8 @@ func (pc *PersonsController) GetDepartments(c *fiber.Ctx) error {
 // @Description Метод API, позволяющий авторизированному пользователю получить информацию о статистике посещаемости субъектом доступа за конкретный день
 // @Tags Persons
 // @Produce json
-// @Param date query string true "День посещения" default(2024-03-02T15:04:05-07:00)
-// @Param id query int true "Идентификатор субъекта доступа СКУД" default(1417)
+// @Param date path string true "День посещения" default(2024-03-02T15:04:05-07:00)
+// @Param id path int true "Идентификатор субъекта доступа СКУД" default(1417)
 // @Success 200 {object} response.Body{data=[]resp.Action,error=nil} "Структура успешного ответа выполнения запроса получения информации о статистике посещаемости субъектом доступа СКУД за конкретный день"
 // @Failure 500 {object} response.Body{data=nil} "Структура неудачного ответа выполнения запроса получения информации о статистике посещаемости субъектом доступа СКУД за конкретный день"
 // @Router /api/persons/activity/dayly [get]
@@ -277,8 +277,8 @@ func (pc *PersonsController) GetDaylyUserStats(c *fiber.Ctx) error {
 // @Description Метод API, позволяющий авторизированному пользователю получить информацию о статистике посещаемости субъектом доступа за конкретный месяц
 // @Tags Persons
 // @Produce json
-// @Param date query string true "Месяц на который нужно расчитать статистику" default(2024-03-02T15:04:05-07:00)
-// @Param id query int true "Идентификатор субъекта доступа СКУД" default(1417)
+// @Param date path string true "Месяц на который нужно расчитать статистику" default(2024-03-02T15:04:05-07:00)
+// @Param id path int true "Идентификатор субъекта доступа СКУД" default(1417)
 // @Success 200 {object} response.Body{data=[]resp.Activity,error=nil} "Структура успешного ответа выполнения запроса получения информации о статистике посещаемости субъектом доступа СКУД за конкретный месяц"
 // @Failure 500 {object} response.Body{data=nil} "Структура неудачного ответа выполнения запроса получения информации о статистике посещаемости субъектом доступа СКУД за конкретный месяц"
 // @Router /api/persons/activity/monthly [get]

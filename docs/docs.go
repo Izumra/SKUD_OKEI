@@ -163,7 +163,7 @@ const docTemplate = `{
                         "default": 0,
                         "description": "Шаг смещения",
                         "name": "offset",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     },
                     {
@@ -171,7 +171,7 @@ const docTemplate = `{
                         "default": 0,
                         "description": "Количество",
                         "name": "count",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -237,7 +237,7 @@ const docTemplate = `{
                         "default": "\"CA00000082942101\"",
                         "description": "Электронный код пропуска",
                         "name": "card_no",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -300,7 +300,7 @@ const docTemplate = `{
                         "default": 2,
                         "description": "Номер считывателя",
                         "name": "id_reader",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -678,7 +678,7 @@ const docTemplate = `{
                         "default": "2024-03-02T15:04:05-07:00",
                         "description": "День посещения",
                         "name": "date",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     },
                     {
@@ -686,7 +686,7 @@ const docTemplate = `{
                         "default": 1417,
                         "description": "Идентификатор субъекта доступа СКУД",
                         "name": "id",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -752,7 +752,7 @@ const docTemplate = `{
                         "default": "2024-03-02T15:04:05-07:00",
                         "description": "Месяц на который нужно расчитать статистику",
                         "name": "date",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     },
                     {
@@ -760,7 +760,7 @@ const docTemplate = `{
                         "default": 1417,
                         "description": "Идентификатор субъекта доступа СКУД",
                         "name": "id",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -885,7 +885,7 @@ const docTemplate = `{
                         "default": 0,
                         "description": "Шаг смещения",
                         "name": "offset",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     },
                     {
@@ -893,7 +893,7 @@ const docTemplate = `{
                         "default": 0,
                         "description": "Количество",
                         "name": "count",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     },
                     {
