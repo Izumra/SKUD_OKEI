@@ -49,7 +49,7 @@ func RegistrCardAPI(router fiber.Router, cs CardService) {
 // @Param count path int true "Количество" default(0)
 // @Success 200 {object} response.Body{data=[]integrserv.KeyData,error=nil} "Структура успешного ответа запроса получения ключей"
 // @Failure 404 {object} response.Body{data=nil} "Структура неудачного ответа запроса получения ключей"
-// @Router /api/cards/ [get]
+// @Router /api/cards/{offset}/{count} [get]
 func (cc *CardController) GetKeys() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		session := c.Cookies("session", "")
@@ -86,7 +86,7 @@ func (cc *CardController) GetKeys() fiber.Handler {
 // @Param card_no path string true "Электронный код пропуска" default("CA00000082942101")
 // @Success 200 {object} response.Body{data=integrserv.KeyData,error=nil} "Структура успешного ответа запроса получения данных о ключе"
 // @Failure 404 {object} response.Body{data=nil} "Структура неудачного ответа запроса получения данных о ключе"
-// @Router /api/cards/by_card_number [get]
+// @Router /api/cards/by_card_number/{card_no} [get]
 func (cc *CardController) GetKeyData() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		session := c.Cookies("session", "")
@@ -115,7 +115,7 @@ func (cc *CardController) GetKeyData() fiber.Handler {
 // @Param id_reader path int true "Номер считывателя" default(2)
 // @Success 200 {object} response.Body{data=integrserv.KeyData,error=nil} "Структура успешного ответа запроса получения электронного кода пропуска"
 // @Failure 404 {object} response.Body{data=nil} "Структура неудачного ответа запроса получения электронного кода пропуска"
-// @Router /api/cards/read_card_number [get]
+// @Router /api/cards/read_card_number/{id_reader} [get]
 func (cc *CardController) ReadCardNumber() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		session := c.Cookies("session", "")

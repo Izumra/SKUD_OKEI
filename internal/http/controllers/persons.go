@@ -61,7 +61,7 @@ func RegistrPersonsAPI(router fiber.Router, ps PersonsService) {
 // @Param Filters body []string true "Тело запроса формата 'application/json', содержащее массив фильтров"
 // @Success 200 {object} response.Body{data=[]integrserv.PersonData,error=nil} "Структура успешного ответа запроса фильтрации субъектов"
 // @Failure 404 {object} response.Body{data=nil} "Структура неудачного ответа запроса фильтрации субъектов"
-// @Router /api/persons/filter/ [post]
+// @Router /api/persons/filter/{offset}/{count} [post]
 func (pc *PersonsController) GetPersons(c *fiber.Ctx) error {
 	session := c.Cookies("session", "")
 
@@ -245,7 +245,7 @@ func (pc *PersonsController) GetDepartments(c *fiber.Ctx) error {
 // @Param id path int true "Идентификатор субъекта доступа СКУД" default(1417)
 // @Success 200 {object} response.Body{data=[]resp.Action,error=nil} "Структура успешного ответа выполнения запроса получения информации о статистике посещаемости субъектом доступа СКУД за конкретный день"
 // @Failure 500 {object} response.Body{data=nil} "Структура неудачного ответа выполнения запроса получения информации о статистике посещаемости субъектом доступа СКУД за конкретный день"
-// @Router /api/persons/activity/dayly [get]
+// @Router /api/persons/activity/dayly/{date}/{id} [get]
 func (pc *PersonsController) GetDaylyUserStats(c *fiber.Ctx) error {
 	session := c.Cookies("session", "")
 
@@ -281,7 +281,7 @@ func (pc *PersonsController) GetDaylyUserStats(c *fiber.Ctx) error {
 // @Param id path int true "Идентификатор субъекта доступа СКУД" default(1417)
 // @Success 200 {object} response.Body{data=[]resp.Activity,error=nil} "Структура успешного ответа выполнения запроса получения информации о статистике посещаемости субъектом доступа СКУД за конкретный месяц"
 // @Failure 500 {object} response.Body{data=nil} "Структура неудачного ответа выполнения запроса получения информации о статистике посещаемости субъектом доступа СКУД за конкретный месяц"
-// @Router /api/persons/activity/monthly [get]
+// @Router /api/persons/activity/monthly/{date}/{id} [get]
 func (pc *PersonsController) GetMonthlyUserStats(c *fiber.Ctx) error {
 	session := c.Cookies("session", "")
 

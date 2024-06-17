@@ -170,7 +170,7 @@ paths:
       summary: Обновление информации электронного ключа
       tags:
       - Keys
-  /api/cards/:
+  /api/cards/{offset}/{count}:
     get:
       description: Метод API, позволяющий авторизированному пользователю получить
         список ключей начиная с шага смещения, указанного в параметре 'offset', количества,
@@ -216,7 +216,7 @@ paths:
       summary: Получение ключей СКУД
       tags:
       - Keys
-  /api/cards/by_card_number:
+  /api/cards/by_card_number/{card_no}:
     get:
       description: Метод API, позволяющий авторизированному пользователю получить
         информацию о ключе по переданному параметру электронного кода 'card_no'
@@ -253,7 +253,7 @@ paths:
       summary: Получение данных о ключе СКУД
       tags:
       - Keys
-  /api/cards/read_card_number:
+  /api/cards/read_card_number/{id_reader}:
     get:
       description: Метод API, позволяющий авторизированному пользователю считать электронный
         код пропуска со считывателя
@@ -488,7 +488,7 @@ paths:
       summary: Обновление информации о субъекте доступа СКУД
       tags:
       - Persons
-  /api/persons/activity/dayly:
+  /api/persons/activity/dayly/{date}/{id}:
     get:
       description: Метод API, позволяющий авторизированному пользователю получить
         информацию о статистике посещаемости субъектом доступа за конкретный день
@@ -536,7 +536,7 @@ paths:
         день СКУД
       tags:
       - Persons
-  /api/persons/activity/monthly:
+  /api/persons/activity/monthly/{date}/{id}:
     get:
       description: Метод API, позволяющий авторизированному пользователю получить
         информацию о статистике посещаемости субъектом доступа за конкретный месяц
@@ -618,7 +618,7 @@ paths:
       summary: Получение информации о группах субъектов доступа СКУД
       tags:
       - Persons
-  /api/persons/filter/:
+  /api/persons/filter/{offset}/{count}:
     post:
       consumes:
       - application/json

@@ -147,81 +147,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/cards/": {
-            "get": {
-                "description": "Метод API, позволяющий авторизированному пользователю получить список ключей начиная с шага смещения, указанного в параметре 'offset', количества, заданного параметром 'count'",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Keys"
-                ],
-                "summary": "Получение ключей СКУД",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 0,
-                        "description": "Шаг смещения",
-                        "name": "offset",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "default": 0,
-                        "description": "Количество",
-                        "name": "count",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Структура успешного ответа запроса получения ключей",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Body"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/integrserv.KeyData"
-                                            }
-                                        },
-                                        "error": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Структура неудачного ответа запроса получения ключей",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Body"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/api/cards/by_card_number": {
+        "/api/cards/by_card_number/{card_no}": {
             "get": {
                 "description": "Метод API, позволяющий авторизированному пользователю получить информацию о ключе по переданному параметру электронного кода 'card_no'",
                 "produces": [
@@ -284,7 +210,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/cards/read_card_number": {
+        "/api/cards/read_card_number/{id_reader}": {
             "get": {
                 "description": "Метод API, позволяющий авторизированному пользователю считать электронный код пропуска со считывателя",
                 "produces": [
@@ -395,6 +321,80 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Структура неудачного ответа запроса конвертации кода ключа",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Body"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/cards/{offset}/{count}": {
+            "get": {
+                "description": "Метод API, позволяющий авторизированному пользователю получить список ключей начиная с шага смещения, указанного в параметре 'offset', количества, заданного параметром 'count'",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Keys"
+                ],
+                "summary": "Получение ключей СКУД",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Шаг смещения",
+                        "name": "offset",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Количество",
+                        "name": "count",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Структура успешного ответа запроса получения ключей",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Body"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/integrserv.KeyData"
+                                            }
+                                        },
+                                        "error": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Структура неудачного ответа запроса получения ключей",
                         "schema": {
                             "allOf": [
                                 {
@@ -662,7 +662,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/persons/activity/dayly": {
+        "/api/persons/activity/dayly/{date}/{id}": {
             "get": {
                 "description": "Метод API, позволяющий авторизированному пользователю получить информацию о статистике посещаемости субъектом доступа за конкретный день",
                 "produces": [
@@ -736,7 +736,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/persons/activity/monthly": {
+        "/api/persons/activity/monthly/{date}/{id}": {
             "get": {
                 "description": "Метод API, позволяющий авторизированному пользователю получить информацию о статистике посещаемости субъектом доступа за конкретный месяц",
                 "produces": [
@@ -866,7 +866,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/persons/filter/": {
+        "/api/persons/filter/{offset}/{count}": {
             "post": {
                 "description": "Метод API, позволяющий авторизированному пользователю получить список субъектов доступа по переданному в теле запроса, массиву фильтров формата 'ключ=значение'",
                 "consumes": [
